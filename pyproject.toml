@@ -4,15 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "odoomcp"
-version = "0.1.0"
+version = "1.0.0"
 description = "A Model Context Protocol server for Odoo ERP systems"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-    { name = "Paco Lopez", email = "pacoaldev@gmail.com" }
+    { name = "Paco López (Pacoaldev)", email = "pacoaldev@gmail.com" }
 ]
 maintainers = [
-    { name = "Paco Lopez", email = "pacoaldev@gmail.com" }
+    { name = "Paco López (Pacoaldev)", email = "pacoaldev@gmail.com" }
 ]
 license = { text = "MIT" }
 keywords = ["mcp", "odoo", "erp", "model-context-protocol", "ai", "llm", "claude", "anthropic"]

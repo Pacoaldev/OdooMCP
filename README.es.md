@@ -2,7 +2,7 @@
 
 <img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="180">
 
-# odoomcp
+# Odoomcp
 
 **Conecta cualquier asistente de IA con soporte MCP a tu ERP Odoo.**
 
