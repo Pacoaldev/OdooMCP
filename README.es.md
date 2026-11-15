@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/f433554b-a57f-4226-bd0a-fa2bd2bd076a" alt="odoomcp logo" width="180">
+<img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="180">
 
 # odoomcp
 
