@@ -2,7 +2,7 @@
 
 <img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="180">
 
-# Odoomcp
+# odoomcp
 
 **Conecta cualquier asistente de IA con soporte MCP a tu ERP Odoo.**
 
@@ -15,7 +15,7 @@ Windsurf o Zed.
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with ty](https://img.shields.io/badge/checked%20with-ty-blue?labelColor=orange)](https://github.com/astral-sh/ty)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [English](README.md) · **Español**
 
@@ -1282,13 +1282,13 @@ uv run pytest tests/test_server_foundation.py -v
 
 ## Licencia
 
-Este proyecto se distribuye bajo la Licencia Pública de Mozilla 2.0 (MPL-2.0) — consulta
+Este proyecto se distribuye bajo la Licencia MIT — consulta
 el fichero [LICENSE](LICENSE) para más detalles.
 
 ## Contribuir
 
-¡Las contribuciones son muy bienvenidas! Consulta la guía
-[CONTRIBUTING](CONTRIBUTING.md) para más detalles.
+¡Las contribuciones son muy bienvenidas! Abre un issue o un pull request para
+proponer cambios.
 
 ## Apoyo
 

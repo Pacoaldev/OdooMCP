@@ -26,8 +26,10 @@ from typing import (
     Sequence,
     Set,
     Tuple,
+    cast,
 )
 
+from mcp.server.lowlevel.helper_types import ReadResourceContents
 from mcp.server.mcpserver import Context, MCPServer
 from mcp.types import CallToolResult, ImageContent, TextContent, ToolAnnotations
 from pydantic import BeforeValidator, WithJsonSchema
@@ -770,7 +772,7 @@ class OdooToolHandler:
                     )
             return await call_tool(name, arguments, context)
 
-        app.call_tool = checked_call_tool  # ty: ignore[invalid-assignment]
+        app.call_tool = checked_call_tool
 
     def _format_datetime(self, value: str) -> str:
         """Format datetime values to ISO 8601 with timezone."""
@@ -3225,7 +3227,8 @@ class OdooToolHandler:
                 model_names = [
                     m["model"]
                     for m in enabled_models
-                    if (m.get("operations") or {}).get("read", True)
+                    if not isinstance(m.get("operations"), dict)
+                    or m["operations"].get("read", True)
                 ]
 
             # Define the resource templates.
@@ -3911,7 +3914,9 @@ class OdooToolHandler:
 
                 # Text, an image, or a field without metadata: read the content
                 contents = await self.app.read_resource(uri)
-                item = list(contents)[0]
+                # An InputRequiredResult has no iterable contents; but this
+                # server never emits one, so narrow to the configured shape.
+                item = list(cast(Iterable[ReadResourceContents], contents))[0]
                 content, mimetype = item.content, item.mime_type or mimetype
                 result["mimetype"] = mimetype
                 if isinstance(content, str):

@@ -100,9 +100,9 @@ exclude = ["venv/", ".venv/", "build/", "dist/"]
 possibly-unresolved-reference = "warn"
 invalid-argument-type = "ignore"
 invalid-parameter-default = "error"
-invalid-return-type = "warn"
+invalid-explicit-return = "warn"
 invalid-assignment = "warn"
-unresolved-attribute = "ignore"
+missing-attribute = "ignore"
 
 [tool.ruff]
 line-length = 100

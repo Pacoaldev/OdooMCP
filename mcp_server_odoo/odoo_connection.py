@@ -425,7 +425,10 @@ class OdooConnection:
         try:
             # Try to get server version via common endpoint
             with self._common_proxy_lock:
-                version = self._common_proxy.version()
+                proxy = self._common_proxy
+                if proxy is None:
+                    raise OdooConnectionError("Common proxy not initialized")
+                version: Any = proxy.version()
             self._server_version = version.get("server_version", "") if version else None
             logger.debug(f"Server version: {version}")
         except Exception as e:
@@ -493,7 +496,10 @@ class OdooConnection:
             if self._json2 is not None:
                 return True, f"Connected to Odoo {self._json2.version().get('version', 'unknown')}"
             with self._common_proxy_lock:
-                version = self._common_proxy.version()
+                proxy = self._common_proxy
+                if proxy is None:
+                    raise OdooConnectionError("Common proxy not initialized")
+                version: Any = proxy.version()
             return True, f"Connected to Odoo {version.get('server_version', 'unknown')}"
         except socket.timeout:
             return False, f"Health check timeout after {self.timeout} seconds"
@@ -615,7 +621,7 @@ class OdooConnection:
                 databases = self.db_proxy.list()
             logger.info(f"Found {len(databases)} databases")
             logger.debug(f"Database names: {databases}")
-            return databases  # ty: ignore[invalid-return-type]  # XML-RPC proxy is untyped
+            return databases  # ty: ignore[invalid-explicit-return]  # XML-RPC proxy is untyped
         except xmlrpc.client.Fault as e:
             if self.config.is_yolo_enabled and "Access Denied" in str(e):
                 # Common error when database listing is restricted
@@ -1664,7 +1670,7 @@ class OdooConnection:
 
         try:
             with self._common_proxy_lock:
-                return self.common_proxy.version()  # ty: ignore[invalid-return-type]  # XML-RPC proxy is untyped
+                return self.common_proxy.version()  # ty: ignore[invalid-explicit-return]  # XML-RPC proxy is untyped
         except Exception as e:
             logger.error(f"Failed to get server version: {e}")
             return None

@@ -343,7 +343,7 @@ class OdooResourceHandler:
             return await class_read_resource(app, uri, context)
 
         # An instance attribute shadows the method for this app only
-        app.read_resource = read_resource  # ty: ignore[invalid-assignment]
+        app.read_resource = read_resource
         app._odoo_binary_override_owner = self
 
     @staticmethod

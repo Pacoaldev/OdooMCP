@@ -352,7 +352,7 @@ class AccessController:
             self._cache.clear()
         logger.info("Cleared access control cache")
 
-    def get_enabled_models(self) -> List[Dict[str, str]]:
+    def get_enabled_models(self) -> List[Dict[str, Any]]:
         """Get list of all MCP-enabled models.
 
         Returns:
@@ -698,7 +698,7 @@ def document_scope_domain(
         # still refuse the operation, and admitting it here would expose
         # exactly the rows the gate exists to withhold.
         operations = entry.get("operations") or {}
-        if operations:
+        if isinstance(operations, dict) and operations:
             # Newer MCP modules ship the flags in the listing itself — free.
             if operations.get(operation):
                 names.append(owner)

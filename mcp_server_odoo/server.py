@@ -212,8 +212,8 @@ class OdooMCPServer:
             return await read_resource(uri, context)
 
         # Instance attributes shadow the methods for this app only
-        app.call_tool = guarded_call_tool  # ty: ignore[invalid-assignment]
-        app.read_resource = guarded_read_resource  # ty: ignore[invalid-assignment]
+        app.call_tool = guarded_call_tool
+        app.read_resource = guarded_read_resource
 
     async def ensure_connected(self) -> None:
         """Connect and authenticate to Odoo unless already done.
