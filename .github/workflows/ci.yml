@@ -235,15 +235,13 @@ jobs:
     name: MCP Integration Tests (Odoo ${{ matrix.odoo }})
     runs-on: ubuntu-latest
     needs: [lint, test]
-    # Skip for fork PRs AND Dependabot PRs — repository secrets
-    # (MCP_MODULE_PAT) are not available to either: forks never get them,
-    # and Dependabot-triggered workflows read from the separate (empty)
-    # Dependabot secrets store. Lint/unit/YOLO jobs still cover those PRs.
-    if: |
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
-      || (github.event_name == 'pull_request'
-          && github.event.pull_request.head.repo.full_name == github.repository
-          && github.actor != 'dependabot[bot]')
+    # Disabled: this job checks out the Odoo MCP module from
+    # much-GmbH/much-mcp-server (previous repository) using
+    # secrets.MCP_MODULE_PAT — neither exists in this repository, so the
+    # checkout fails with "Input required and not supplied: token".
+    # Re-enable with the original `if:` guard once the module lives
+    # somewhere accessible. `build` already tolerates a skipped job.
+    if: false
     strategy:
       fail-fast: false
       matrix:
