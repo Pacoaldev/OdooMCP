@@ -116,7 +116,7 @@ Cosas que puedes pedirle a tu asistente una vez conectado:
      "mcpServers": {
        "odoo": {
          "command": "uvx",
-         "args": ["odoomcp"],
+         "args": ["mcp-odoo"],
          "env": {
            "ODOO_URL": "https://your-odoo-instance.com",
            "ODOO_API_KEY": "your-api-key-here"
@@ -153,7 +153,7 @@ Añade a `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "odoo": {
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": {
         "ODOO_URL": "https://your-odoo-instance.com",
         "ODOO_API_KEY": "your-api-key-here",
@@ -175,7 +175,7 @@ claude mcp add odoo \
   --env ODOO_URL=https://your-odoo-instance.com \
   --env ODOO_API_KEY=your-api-key-here \
   --env ODOO_DB=your-database-name \
-  -- uvx odoomcp
+  -- uvx mcp-odoo
 ```
 </details>
 
@@ -189,7 +189,7 @@ Añade a `~/.cursor/mcp.json`:
   "mcpServers": {
     "odoo": {
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": {
         "ODOO_URL": "https://your-odoo-instance.com",
         "ODOO_API_KEY": "your-api-key-here",
@@ -213,7 +213,7 @@ Añade a `.vscode/mcp.json` en tu workspace. Fíjate en que VS Code usa
     "odoo": {
       "type": "stdio",
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": {
         "ODOO_URL": "https://your-odoo-instance.com",
         "ODOO_API_KEY": "your-api-key-here",
@@ -235,7 +235,7 @@ Añade a `~/.codeium/windsurf/mcp_config.json`:
   "mcpServers": {
     "odoo": {
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": {
         "ODOO_URL": "https://your-odoo-instance.com",
         "ODOO_API_KEY": "your-api-key-here",
@@ -258,7 +258,7 @@ Añade a `~/.config/zed/settings.json`:
     "odoo": {
       "command": {
         "path": "uvx",
-        "args": ["odoomcp"],
+        "args": ["mcp-odoo"],
         "env": {
           "ODOO_URL": "https://your-odoo-instance.com",
           "ODOO_API_KEY": "your-api-key-here",
@@ -319,10 +319,10 @@ La imagen también está disponible en GHCR: `ghcr.io/pacoaldev/odoomcp`
 
 ```bash
 # Instalación global
-pip install odoomcp
+pip install mcp-odoo
 
 # O usa pipx para un entorno aislado
-pipx install odoomcp
+pipx install mcp-odoo
 ```
 
 Después usa `odoomcp` como comando en tu configuración MCP.
@@ -333,7 +333,7 @@ Después usa `odoomcp` como comando en tu configuración MCP.
 
 ```bash
 git clone https://github.com/Pacoaldev/OdooMCP.git
-cd odoomcp
+cd OdooMCP
 pip install -e .
 ```
 
@@ -406,12 +406,12 @@ compartiendo un único usuario de Odoo:
   "mcpServers": {
     "odoo-company-a": {
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": { "ODOO_URL": "...", "ODOO_API_KEY": "...", "ODOO_ALLOWED_COMPANIES": "1" }
     },
     "odoo-company-b": {
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": { "ODOO_URL": "...", "ODOO_API_KEY": "...", "ODOO_ALLOWED_COMPANIES": "3" }
     }
   }
@@ -439,7 +439,7 @@ Entrada/salida estándar — lo que usan las aplicaciones de IA de escritorio co
 Desktop. Sin configuración adicional:
 
 ```bash
-uvx odoomcp
+uvx mcp-odoo
 ```
 
 #### streamable-http
@@ -456,16 +456,16 @@ Transporte HTTP para conectividad remota y acceso de tipo REST.
 
 ```bash
 # Ejecutar con transporte HTTP (solo localhost — valor seguro por defecto)
-uvx odoomcp --transport streamable-http --port 8000
+uvx mcp-odoo --transport streamable-http --port 8000
 
 # Escuchar en 0.0.0.0 expone el servidor a la red — consulta la nota de seguridad anterior
-uvx odoomcp --transport streamable-http --host 0.0.0.0 --port 8000
+uvx mcp-odoo --transport streamable-http --host 0.0.0.0 --port 8000
 
 # O usa variables de entorno
 export ODOO_MCP_TRANSPORT=streamable-http
 export ODOO_MCP_HOST=0.0.0.0
 export ODOO_MCP_PORT=8000
-uvx odoomcp
+uvx mcp-odoo
 ```
 
 El endpoint HTTP estará disponible en: `http://localhost:8000/mcp/`
@@ -486,7 +486,7 @@ El endpoint HTTP estará disponible en: `http://localhost:8000/mcp/`
   "mcpServers": {
     "odoo-remote": {
       "command": "uvx",
-      "args": ["odoomcp", "--transport", "streamable-http", "--port", "8080"],
+      "args": ["mcp-odoo", "--transport", "streamable-http", "--port", "8080"],
       "env": {
         "ODOO_URL": "https://your-odoo-instance.com",
         "ODOO_API_KEY": "your-api-key-here",
@@ -549,7 +549,7 @@ de Odoo **sin el módulo MCP**. Omite todos los controles de acceso MCP y está 
   "mcpServers": {
     "odoo-demo": {
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": {
         "ODOO_URL": "http://localhost:8069",
         "ODOO_USER": "admin",
@@ -571,7 +571,7 @@ de Odoo **sin el módulo MCP**. Omite todos los controles de acceso MCP y está 
   "mcpServers": {
     "odoo-test": {
       "command": "uvx",
-      "args": ["odoomcp"],
+      "args": ["mcp-odoo"],
       "env": {
         "ODOO_URL": "http://localhost:8069",
         "ODOO_USER": "admin",
@@ -1186,7 +1186,7 @@ Luego actualiza tu configuración:
 ```json
 {
   "command": "/Users/yourname/.local/bin/uvx",
-  "args": ["odoomcp"]
+  "args": ["mcp-odoo"]
 }
 ```
 </details>
@@ -1331,7 +1331,7 @@ configurados en el módulo MCP de Odoo siguen aplicándose a cada operación.
 ```bash
 # Clona el repositorio
 git clone https://github.com/Pacoaldev/OdooMCP.git
-cd odoomcp
+cd OdooMCP
 
 # Instalación en modo desarrollo
 pip install -e ".[dev]"
@@ -1352,7 +1352,7 @@ python -m mcp_server_odoo --version
 
 ```bash
 # Con uvx
-npx @modelcontextprotocol/inspector uvx odoomcp
+npx @modelcontextprotocol/inspector uvx mcp-odoo
 
 # Con instalación local
 npx @modelcontextprotocol/inspector python -m mcp_server_odoo

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "odoomcp"
+name = "mcp-odoo"
 version = "1.0.0"
 description = "A Model Context Protocol server for Odoo ERP systems"
 readme = "README.md"
