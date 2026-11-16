@@ -74,7 +74,7 @@ For more information, visit: https://github.com/Pacoaldev/OdooMCP""",
     parser.add_argument(
         "--version",
         action="version",
-        version=f"odoo-mcp-server v{SERVER_VERSION}",
+        version=f"mcp-odoo v{SERVER_VERSION}",
     )
 
     # CLI flags default to None sentinels: load_config() resolves the

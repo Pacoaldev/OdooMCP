@@ -106,7 +106,7 @@ class OdooMCPServer:
         # Create the MCPServer instance with server metadata. Without
         # version=, serverInfo.version is the SDK's own version.
         self.app = MCPServer(
-            name="odoo-mcp-server",
+            name="mcp-odoo",
             instructions="MCP server for accessing and managing Odoo ERP data through the Model Context Protocol",
             version=SERVER_VERSION,
             lifespan=self._odoo_lifespan,

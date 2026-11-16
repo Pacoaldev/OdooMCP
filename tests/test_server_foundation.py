@@ -96,7 +96,7 @@ class TestServerFoundation:
         assert server.connection is not None
         assert not server.connection.is_connected
         assert server.app is not None
-        assert server.app.name == "odoo-mcp-server"
+        assert server.app.name == "mcp-odoo"
 
     def test_server_initialization_with_env_config(self, monkeypatch, tmp_path):
         """Test server initialization loading config from environment."""
@@ -660,7 +660,7 @@ class TestMainEntry:
         captured = capsys.readouterr()
         # Version output goes to stdout by default from argparse
         version_output = captured.out or captured.err
-        assert f"odoo-mcp-server v{SERVER_VERSION}" in version_output
+        assert f"mcp-odoo v{SERVER_VERSION}" in version_output
 
     def test_main_with_invalid_config(self, capsys, monkeypatch):
         """Test main with invalid configuration."""
@@ -770,7 +770,7 @@ class TestFastMCPApp:
         server = OdooMCPServer(valid_config)
 
         assert server.app is not None
-        assert server.app.name == "odoo-mcp-server"
+        assert server.app.name == "mcp-odoo"
         assert "Odoo ERP data" in server.app.instructions
 
     def test_health_route_registered(self, valid_config):
