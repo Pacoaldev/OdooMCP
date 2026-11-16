@@ -1,20 +1,14 @@
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="180">
+<img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="150">
 
 # odoomcp
 
-**Connect any MCP-capable AI assistant to your Odoo ERP.**
+**A direct, permission-aware bridge between AI assistants and Odoo.**
 
-Search records, create entries, update data, manage files and drive workflows in
-natural language — from Claude Desktop, Claude Code, Cursor, VS Code, Windsurf or Zed.
+Explore, query and update business data, handle attachments and trigger supported workflows through the Model Context Protocol — using the AI client you already work with.
 
-[![CI](https://github.com/Pacoaldev/OdooMCP/actions/workflows/ci.yml/badge.svg)](https://github.com/Pacoaldev/OdooMCP/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/Pacoaldev/OdooMCP/branch/main/graph/badge.svg)](https://codecov.io/gh/Pacoaldev/OdooMCP)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Checked with ty](https://img.shields.io/badge/checked%20with-ty-blue?labelColor=orange)](https://github.com/astral-sh/ty)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/Pacoaldev/OdooMCP/actions/workflows/ci.yml/badge.svg)](https://github.com/Pacoaldev/OdooMCP/actions/workflows/ci.yml)  [![codecov](https://codecov.io/gh/Pacoaldev/OdooMCP/branch/main/graph/badge.svg)](https://codecov.io/gh/Pacoaldev/OdooMCP)  [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)  [![Checked with ty](https://img.shields.io/badge/checked%20with-ty-blue?labelColor=orange)](https://github.com/astral-sh/ty)  [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **English** · [Español](README.es.md)
 
@@ -22,28 +16,56 @@ natural language — from Claude Desktop, Claude Code, Cursor, VS Code, Windsurf
 
 ---
 
-## Contents
+## Documentation map
+
+Use this guide as a route through the project: start with a working connection, configure the access model that fits your environment, then explore the available operations.
+
+### 01 · Understand the project
 
 - [What it does](#what-it-does)
 - [Quick start](#quick-start)
 - [Connect your client](#connect-your-client)
 - [Alternative installs](#alternative-installs)
+
+### 02 · Configure the connection
+
 - [Configuration](#configuration)
 - [Transports](#transports)
 - [Setting up Odoo (standard mode)](#setting-up-odoo-standard-mode)
 - [YOLO mode](#yolo-mode)
+
+### 03 · Work with Odoo data
+
 - [Tools reference](#tools-reference)
 - [Field selection and per-call context](#field-selection-and-per-call-context)
 - [Resource URIs](#resource-uris)
 - [How it works](#how-it-works)
+
+### 04 · Operate safely
+
 - [Security](#security)
 - [Troubleshooting](#troubleshooting)
+
+### 05 · Develop and contribute
+
 - [Development and testing](#development-and-testing)
 - [License](#license)
 - [Contributing](#contributing)
 - [Support](#support)
 
-## What it does
+---
+
+## Start with what you need
+
+- **Get connected:** [Quick start](#quick-start)
+- **Choose an installation:** [Alternative installs](#alternative-installs)
+- **Configure access:** [Configuration](#configuration)
+- **Explore the toolset:** [Tools reference](#tools-reference)
+- **Review security:** [Security](#security)
+
+## 01 · Understand the project
+
+### What it does
 
 An MCP server that translates natural-language requests from an AI assistant into
 authenticated Odoo operations: reads, writes, aggregations, file handling and workflow
@@ -74,7 +96,7 @@ Things you can ask your assistant once it is connected:
 | Localization | Responses in your preferred Odoo language (`ODOO_LOCALE`, per-call `lang`) |
 | Compatibility | Works with any Odoo instance in YOLO mode; with the MCP module for production |
 
-## Quick start
+### Quick start
 
 1. Install [UV](https://docs.astral.sh/uv/) on the machine that runs your AI client:
 
@@ -113,7 +135,7 @@ Two ways to talk to Odoo:
 - **YOLO mode (dev/testing/demos)**: connects to any standard Odoo with XML-RPC enabled.
   No module required. Bypasses MCP access controls — see [YOLO mode](#yolo-mode).
 
-## Connect your client
+### Connect your client
 
 The server runs on the machine where the AI client is installed, not on the Odoo server.
 Every client below takes the same command, arguments and environment — only the config
@@ -247,7 +269,7 @@ Add to `~/.config/zed/settings.json`:
 ```
 </details>
 
-## Alternative installs
+### Alternative installs
 
 <details>
 <summary>Docker</summary>
@@ -312,7 +334,9 @@ pip install -e .
 Then use the full path to the package in your MCP configuration.
 </details>
 
-## Configuration
+## 02 · Configure the connection
+
+### Configuration
 
 ### Required environment variables
 
@@ -398,7 +422,7 @@ Note this is context-level scoping, not a security boundary: the credentials can
 access every company the Odoo user is allowed to. For hard isolation, restrict the user's
 allowed companies in Odoo itself.
 
-## Transports
+### Transports
 
 ### stdio (default)
 
@@ -464,7 +488,7 @@ The HTTP endpoint will be available at: `http://localhost:8000/mcp/`
 ```
 </details>
 
-## Setting up Odoo (standard mode)
+### Setting up Odoo (standard mode)
 
 1. **Install the MCP module**:
    - Download the [mcp_server](https://apps.odoo.com/apps/modules/19.0/mcp_server) module
@@ -489,7 +513,7 @@ The HTTP endpoint will be available at: `http://localhost:8000/mcp/`
    - Recent module versions refuse API keys and password logins of users outside this
      group. The server then reports the reason from the module at startup.
 
-## YOLO mode
+### YOLO mode
 
 YOLO mode lets the server connect directly to any standard Odoo instance **without the
 MCP module**. It bypasses all MCP access controls and is intended **ONLY for development,
@@ -571,7 +595,9 @@ servers, anything with sensitive information.
   `call_model_method` refuses to run them directly, but a changed action runs on its next
   schedule or trigger. This is the same power that an administrator has in the Odoo UI.
 
-## Tools reference
+## 03 · Work with Odoo data
+
+### Tools reference
 
 | Tool | Purpose |
 |------|---------|
@@ -918,7 +944,7 @@ by its parameter name, for example `{"partner_ids": [3]}`.
 }
 ```
 
-## Field selection and per-call context
+### Field selection and per-call context
 
 ### Smart field selection
 
@@ -971,7 +997,7 @@ the search, the count, the read, the existence check and the read-back after a w
 }
 ```
 
-## Resource URIs
+### Resource URIs
 
 Beyond tools, the server exposes Odoo data as resource URIs:
 
@@ -1011,7 +1037,7 @@ the user cannot read, is checked only after the fetch.
 > **Note:** Resource URIs don't support query parameters (like `?domain=...`). For
 > filtering, pagination, and field selection, use the `search_records` tool instead.
 
-## How it works
+### How it works
 
 ```
 AI Assistant (Claude, Copilot, etc.)
@@ -1021,7 +1047,9 @@ AI Assistant (Claude, Copilot, etc.)
    Odoo Instance
 ```
 
-## Security
+## 04 · Operate safely
+
+### Security
 
 - Always use HTTPS in production environments
 - Keep your API keys secure and rotate them regularly
@@ -1063,7 +1091,7 @@ and you can set it to a record of a model that is not enabled. The same applies 
 many2many link (`[4, id]`, `[3, id]`, `[6, 0, ids]`). Odoo's own access rights and record
 rules apply to every call.
 
-## Troubleshooting
+### Troubleshooting
 
 <details>
 <summary>Connection Issues</summary>
@@ -1186,7 +1214,9 @@ Enable debug logging for more information:
 ```
 </details>
 
-## Development and testing
+## 05 · Develop and contribute
+
+### Development and testing
 
 <details>
 <summary>Running from source</summary>
@@ -1244,16 +1274,16 @@ uv run pytest tests/test_server_foundation.py -v
 ```
 </details>
 
-## License
+### License
 
 This project is licensed under the MIT License — see the
 [LICENSE](LICENSE) file for details.
 
-## Contributing
+### Contributing
 
 Contributions are very welcome! Open an issue or a pull request to discuss changes.
 
-## Support
+### Support
 
 Thank you for using this project! If you find it helpful and would like to support my
 work, kindly consider buying me a coffee. Your support is greatly appreciated!
