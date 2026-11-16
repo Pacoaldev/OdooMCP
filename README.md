@@ -1228,7 +1228,7 @@ Odoo 19 environment with PostgreSQL 16 and the official `mcp_server` addon mount
 
 ```bash
 # Start the stack; named volumes preserve the database and Odoo data
- docker-compose up -d
+docker compose up -d
 
 # Verify the Odoo MCP module is ready
 curl http://localhost:8069/mcp/health

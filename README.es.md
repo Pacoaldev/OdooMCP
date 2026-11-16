@@ -1265,7 +1265,7 @@ para Odoo 19.0 y extráelo allí.
 
 ```bash
 # Arranca los servicios; los volúmenes conservan la base de datos y los datos de Odoo
-docker-compose up -d
+docker compose up -d
 
 # Comprueba que el módulo MCP de Odoo está listo
 curl http://localhost:8069/mcp/health
