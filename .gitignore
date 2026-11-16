@@ -134,3 +134,5 @@ docs/
 .mcp.json
 .atl/
 
+# Local dev scripts (demo-data seeding, MCP probes): not part of the public repo
+/scripts/
