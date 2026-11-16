@@ -2,7 +2,7 @@
 
 <img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="150">
 
-# odoomcp
+# OdooMCP
 
 **Un puente directo y respetuoso con los permisos entre los asistentes de IA y Odoo.**
 
