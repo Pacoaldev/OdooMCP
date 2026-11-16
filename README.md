@@ -16,6 +16,10 @@ Explore, query and update business data, handle attachments and trigger supporte
 
 ---
 
+<p align="center">
+  <img src="assets/imagen_ingles.png" alt="OdooMCP overview" width="85%">
+</p>
+
 ## Documentation map
 
 Use this guide as a route through the project: start with a working connection, configure the access model that fits your environment, then explore the available operations.

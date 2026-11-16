@@ -67,6 +67,10 @@ Esta guía sigue el recorrido de uso del proyecto: empieza estableciendo la cone
 
 ### Qué hace
 
+<p align="center">
+  <img src="assets/odoomcp-social-03.png" alt="OdooMCP - El puente directo entre tu asistente IA y Odoo" width="85%">
+</p>
+
 Un servidor MCP que traduce peticiones en lenguaje natural de un asistente de IA en
 operaciones autenticadas sobre Odoo: lecturas, escrituras, agregaciones, gestión de
 ficheros y métodos de workflow. Gestiona la autenticación, el control de acceso,
@@ -611,6 +615,10 @@ desarrollo compartidos, cualquier entorno con información sensible.
 
 ## 03 · Trabaja con los datos de Odoo
 
+<p align="center">
+  <img src="assets/odoomcp-social-02.png" alt="OdooMCP - Habla con tus datos de Odoo: consulta, actualiza, automatiza" width="60%">
+</p>
+
 ### Referencia de herramientas
 
 | Herramienta | Propósito |
@@ -1068,6 +1076,10 @@ comprueba solo después de la lectura.
 > Para filtrar, paginar y seleccionar campos, usa la herramienta `search_records`.
 
 ### Cómo funciona
+
+<p align="center">
+  <img src="assets/odoomcp-social-01.png" alt="OdooMCP - Tu IA conectada a Odoo" width="60%">
+</p>
 
 ```
 Asistente de IA (Claude, Copilot, etc.)
