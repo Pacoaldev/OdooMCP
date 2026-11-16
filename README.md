@@ -1362,6 +1362,14 @@ Contributions are very welcome! Open an issue or a pull request to discuss chang
 Thank you for using this project! If you find it helpful and would like to support my
 work, kindly consider buying me a coffee. Your support is greatly appreciated!
 
-<a href="https://ko-fi.com/pacoaldev" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com" style="height: 36px !important;" ></a>
+<p align="center">
+  <a href="https://ko-fi.com/pacoaldev" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com" style="height: 36px !important;" ></a>
+</p>
 
 And do not forget to give the project a star if you like it! :star:
+
+<p align="center">
+  <a href="https://github.com/Gentleman-Programming/gentle-ai">
+    <img width="220" src="https://raw.githubusercontent.com/Gentleman-Programming/gentle-ai/main/docs/assets/brand/built-with-gentle-ai.png" alt="Built with Gentle-AI" />
+  </a>
+</p>
