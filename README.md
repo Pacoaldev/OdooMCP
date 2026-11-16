@@ -343,7 +343,7 @@ Then use the full path to the package in your MCP configuration.
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
 | `ODOO_URL` | Yes | Your Odoo instance URL | `https://mycompany.odoo.com` |
-| `ODOO_API_KEY` | Yes* | API key for authentication | `0ef5b399e9ee9c11b053dfb6eeba8de473c29fcd` |
+| `ODOO_API_KEY` | Yes* | API key for authentication | `<your-api-key>` |
 | `ODOO_USER` | Yes* | Username (if not using API key) | `admin` |
 | `ODOO_PASSWORD` | Yes* | Password (if not using API key) | `admin` |
 | `ODOO_DB` | No | Database name (auto-detected if not set) | `mycompany` |

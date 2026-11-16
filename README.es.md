@@ -349,7 +349,7 @@ Después usa la ruta completa del paquete en tu configuración MCP.
 | Variable | Obligatoria | Descripción | Ejemplo |
 |----------|-------------|-------------|---------|
 | `ODOO_URL` | Sí | URL de tu instancia de Odoo | `https://mycompany.odoo.com` |
-| `ODOO_API_KEY` | Sí* | Clave API para la autenticación | `0ef5b399e9ee9c11b053dfb6eeba8de473c29fcd` |
+| `ODOO_API_KEY` | Sí* | Clave API para la autenticación | `<tu-clave-api>` |
 | `ODOO_USER` | Sí* | Nombre de usuario (si no usas clave API) | `admin` |
 | `ODOO_PASSWORD` | Sí* | Contraseña (si no usas clave API) | `admin` |
 | `ODOO_DB` | No | Nombre de la base de datos (se autodetecta si no se indica) | `mycompany` |
