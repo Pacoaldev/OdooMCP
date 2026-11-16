@@ -127,6 +127,10 @@ docs/
 *.sass.map
 *.scss.map
 
+# Odoo dev instance
+/odoo.env.example
+/addons/
+
 .mcp.json
 .atl/
 

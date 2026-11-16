@@ -1,0 +1,8 @@
+FROM odoo:19.0
+
+# Install Python dependencies for mcp_server module
+RUN pip install --break-system-packages --no-cache-dir "authlib>=1.6.12,<1.7.0" defusedxml packaging
+
+# Keep base entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["odoo"]

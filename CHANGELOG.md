@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - MCP server connecting AI assistants to Odoo ERP over XML-RPC and JSON-2 transports.
+- Persistent local Odoo 19 development stack with PostgreSQL 16, official `mcp_server` addon mount, and addon dependencies baked into `Dockerfile.odoo`.
+- Development documentation for configuring local Odoo integration tests and connecting OpenCode as an MCP client.
+- `AGENTS.md` guidance for local Odoo development and Spanish terminology mapping (`res.partner` vs. `res.company`).
 - Tools for searching, reading, creating, updating and deleting Odoo records, including batch writes, attachments and binary file reads.
 - `odoo://` resource URIs for models, records, search results and attachments.
 - Access control with per-model permissions and field-level security.

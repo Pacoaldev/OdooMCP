@@ -1219,6 +1219,76 @@ Enable debug logging for more information:
 ### Development and testing
 
 <details>
+<summary>Local Odoo 19 integration environment</summary>
+
+The repository includes `docker-compose.yml` and `Dockerfile.odoo` for a persistent local
+Odoo 19 environment with PostgreSQL 16 and the official `mcp_server` addon mounted from
+`./addons`. The addon directory is intentionally git-ignored; download the Odoo Apps
+19.0 `mcp_server` ZIP and extract it there.
+
+```bash
+# Start the stack; named volumes preserve the database and Odoo data
+ docker-compose up -d
+
+# Verify the Odoo MCP module is ready
+curl http://localhost:8069/mcp/health
+```
+
+Create a local `.env` in the repository root (already git-ignored):
+
+```dotenv
+ODOO_URL=http://localhost:8069
+ODOO_DB=odoo_test
+ODOO_USER=admin
+ODOO_PASSWORD=admin
+ODOO_API_KEY=<your Odoo API key with rpc scope>
+```
+
+The `Dockerfile.odoo` installs addon dependencies in the image, so they survive container
+recreation. The database and filestore persist in Docker volumes; `./addons` is mounted
+from the host.
+
+Run live integration tests after exporting the variables. Pytest does not load `.env`
+automatically:
+
+```bash
+# Bash
+set -a; source .env; set +a
+uv run pytest -m "yolo or mcp" -q
+```
+
+</details>
+
+<details>
+<summary>Connect OpenCode</summary>
+
+Add an MCP server entry to OpenCode's `opencode.json`:
+
+```json
+{
+  "mcp": {
+    "odoo": {
+      "type": "local",
+      "command": ["uv", "run", "--directory", "<path-to-OdooMCP>", "python", "-m", "mcp_server_odoo"],
+      "environment": {
+        "ODOO_URL": "http://localhost:8069",
+        "ODOO_DB": "odoo_test",
+        "ODOO_USER": "admin",
+        "ODOO_PASSWORD": "admin",
+        "ODOO_API_KEY": "<your-rpc-scope-key>"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+Restart OpenCode and ask it to search Odoo records. The MCP module's model permissions
+still apply to every operation.
+
+</details>
+
+<details>
 <summary>Running from source</summary>
 
 ```bash

@@ -1256,6 +1256,76 @@ Habilita el logging de depuración para más información:
 ### Desarrollo y pruebas
 
 <details>
+<summary>Entorno local de integración con Odoo 19</summary>
+
+El repositorio incluye `docker-compose.yml` y `Dockerfile.odoo` para levantar un entorno
+local persistente con Odoo 19, PostgreSQL 16 y el addon oficial `mcp_server`, montado desde
+`./addons`. El directorio del addon está excluido de Git: descarga el ZIP de Odoo Apps
+para Odoo 19.0 y extráelo allí.
+
+```bash
+# Arranca los servicios; los volúmenes conservan la base de datos y los datos de Odoo
+docker-compose up -d
+
+# Comprueba que el módulo MCP de Odoo está listo
+curl http://localhost:8069/mcp/health
+```
+
+Crea un archivo local `.env` en la raíz del repositorio (ya está excluido de Git):
+
+```dotenv
+ODOO_URL=http://localhost:8069
+ODOO_DB=odoo_test
+ODOO_USER=admin
+ODOO_PASSWORD=admin
+ODOO_API_KEY=<tu clave API de Odoo con scope rpc>
+```
+
+`Dockerfile.odoo` instala las dependencias del addon en la imagen; sobreviven a la
+recreación del contenedor. La base de datos y el filestore persisten en volúmenes Docker,
+y `./addons` se monta desde el equipo anfitrión.
+
+Para ejecutar los tests de integración, exporta las variables antes. Pytest no carga
+`.env` automáticamente:
+
+```bash
+# Bash
+set -a; source .env; set +a
+uv run pytest -m "yolo or mcp" -q
+```
+
+</details>
+
+<details>
+<summary>Conectar OpenCode</summary>
+
+Añade este servidor MCP a `opencode.json` de OpenCode:
+
+```json
+{
+  "mcp": {
+    "odoo": {
+      "type": "local",
+      "command": ["uv", "run", "--directory", "<ruta-a-OdooMCP>", "python", "-m", "mcp_server_odoo"],
+      "environment": {
+        "ODOO_URL": "http://localhost:8069",
+        "ODOO_DB": "odoo_test",
+        "ODOO_USER": "admin",
+        "ODOO_PASSWORD": "admin",
+        "ODOO_API_KEY": "<tu-clave-con-scope-rpc>"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+Reinicia OpenCode y pídele que consulte registros de Odoo. Los permisos de modelos
+configurados en el módulo MCP de Odoo siguen aplicándose a cada operación.
+
+</details>
+
+<details>
 <summary>Ejecutar desde el código fuente</summary>
 
 ```bash
