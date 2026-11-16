@@ -226,9 +226,16 @@ class TestRetry:
             port = probe.getsockname()[1]
         client = Json2Client(f"http://127.0.0.1:{port}", "key", "odoo", 1.0)
 
-        with pytest.raises(OdooUnreachableError, match="Cannot connect to Odoo") as caught:
+        with pytest.raises(OdooUnreachableError) as caught:
             client.call("res.partner", "search", {})
-        assert str(caught.value).count("Cannot connect to Odoo") == 1
+        # Linux reports a dead port as a refused connection ("Cannot connect
+        # to Odoo"); Windows surfaces the same dead port as a connect timeout
+        # ("Operation timeout after ..."). Both mean unreachable.
+        message = str(caught.value)
+        assert "Cannot connect to Odoo" in message or "Operation timeout" in message
+        if "Cannot connect to Odoo" in message:
+            # The refused wording must never be duplicated by the sanitizer.
+            assert message.count("Cannot connect to Odoo") == 1
 
 
 # (status, Odoo error body, exception, message part, fault code), from Odoo 20

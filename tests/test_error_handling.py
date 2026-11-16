@@ -203,7 +203,12 @@ class TestLoggingConfiguration:
 
     def test_setup_logging(self):
         """Test logging setup writes valid JSON to file."""
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        # Close our handle right away: the file handler takes ownership of
+        # the path. Windows cannot delete a file while ANY handle to it is
+        # open, including the one held by the NamedTemporaryFile context.
+        tmp = tempfile.NamedTemporaryFile(delete=False)
+        tmp.close()
+        try:
             setup_logging(
                 log_level="DEBUG",
                 use_json=True,
@@ -226,8 +231,13 @@ class TestLoggingConfiguration:
                 if line.strip():
                     parsed = json.loads(line)
                     assert "message" in parsed
-
-            # Clean up
+        finally:
+            # Close every root handler so the log file handle is released
+            # (Windows refuses to delete an open file), and leave the root
+            # logger without handlers so none leak into later tests.
+            for handler in logging.getLogger().handlers[:]:
+                handler.close()
+                logging.getLogger().removeHandler(handler)
             os.unlink(tmp.name)
 
     def test_logging_config_from_env(self):
