@@ -4,9 +4,9 @@
 
 # odoomcp
 
-**Un puente directo y controlado entre los asistentes de IA y Odoo.**
+**Un puente directo y respetuoso con los permisos entre los asistentes de IA y Odoo.**
 
-Consulta y actualiza información empresarial, gestiona adjuntos y ejecuta workflows compatibles mediante el Model Context Protocol, desde el cliente de IA que ya utilizas.
+Explora, consulta y actualiza información empresarial, gestiona adjuntos y ejecuta workflows compatibles mediante el Model Context Protocol, desde el cliente de IA que ya utilizas.
 
 [![CI](https://github.com/Pacoaldev/OdooMCP/actions/workflows/ci.yml/badge.svg)](https://github.com/Pacoaldev/OdooMCP/actions/workflows/ci.yml)  [![codecov](https://codecov.io/gh/Pacoaldev/OdooMCP/branch/main/graph/badge.svg)](https://codecov.io/gh/Pacoaldev/OdooMCP)  [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)  [![Checked with ty](https://img.shields.io/badge/checked%20with-ty-blue?labelColor=orange)](https://github.com/astral-sh/ty)  [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -18,35 +18,35 @@ Consulta y actualiza información empresarial, gestiona adjuntos y ejecuta workf
 
 ## Mapa de documentación
 
-Esta guía sigue el recorrido de uso del proyecto: primero establece la conexión, después configura el nivel de acceso adecuado y, por último, consulta las operaciones disponibles.
+Esta guía sigue el recorrido de uso del proyecto: empieza estableciendo la conexión, después configura el nivel de acceso adecuado y, por último, consulta las operaciones disponibles.
 
-### 01 · Conoce el proyecto y arranca
+**01 · Conoce el proyecto y arranca**
 
 - [Qué hace](#qué-hace)
 - [Inicio rápido](#inicio-rápido)
 - [Conecta tu cliente](#conecta-tu-cliente)
 - [Instalaciones alternativas](#instalaciones-alternativas)
 
-### 02 · Configura la conexión
+**02 · Configura la conexión**
 
 - [Configuración](#configuración)
 - [Transportes](#transportes)
 - [Configurar Odoo (modo estándar)](#configurar-odoo-modo-estándar)
 - [Modo YOLO](#modo-yolo)
 
-### 03 · Trabaja con los datos de Odoo
+**03 · Trabaja con los datos de Odoo**
 
 - [Referencia de herramientas](#referencia-de-herramientas)
 - [Selección de campos y contexto por llamada](#selección-de-campos-y-contexto-por-llamada)
 - [URIs de recursos](#uris-de-recursos)
 - [Cómo funciona](#cómo-funciona)
 
-### 04 · Seguridad y mantenimiento
+**04 · Seguridad y mantenimiento**
 
 - [Seguridad](#seguridad)
 - [Resolución de problemas](#resolución-de-problemas)
 
-### 05 · Desarrollo y comunidad
+**05 · Desarrollo y comunidad**
 
 - [Desarrollo y pruebas](#desarrollo-y-pruebas)
 - [Licencia](#licencia)
@@ -69,7 +69,7 @@ Esta guía sigue el recorrido de uso del proyecto: primero establece la conexió
 
 Un servidor MCP que traduce peticiones en lenguaje natural de un asistente de IA en
 operaciones autenticadas sobre Odoo: lecturas, escrituras, agregaciones, gestión de
-ficheros y workflow methods. Gestiona la autenticación, el control de acceso,
+ficheros y métodos de workflow. Gestiona la autenticación, el control de acceso,
 la selección de campos, el formateo de datos y el tratamiento de errores, y presenta los
 datos de Odoo en un formato jerárquico optimizado para LLMs.
 
@@ -344,7 +344,7 @@ Después usa la ruta completa del paquete en tu configuración MCP.
 
 ### Configuración
 
-### Variables de entorno obligatorias
+#### Variables de entorno obligatorias
 
 | Variable | Obligatoria | Descripción | Ejemplo |
 |----------|-------------|-------------|---------|
@@ -372,7 +372,7 @@ clave API basta, porque Odoo lee el usuario a partir de la clave.
   porque el módulo MCP comprueba cada llamada. Si concedes un permiso, puede tardar hasta
   5 minutos en aplicarse. Reinicia el servidor para aplicarlo al instante.
 
-### Variables avanzadas
+#### Variables avanzadas
 
 | Variable | Por defecto | Descripción |
 |----------|-------------|-------------|
@@ -391,7 +391,7 @@ clave API basta, porque Odoo lee el usuario a partir de la clave.
 | `ODOO_MCP_SESSION_IDLE_TIMEOUT` | — | Segundos de inactividad antes de cerrar una sesión `streamable-http` y liberar su estado en el servidor, p. ej. `600`. Sin configurar, las sesiones nunca expiran. |
 | `ODOO_MCP_MAX_BINARY_SIZE` | `52428800` | Máximo de bytes devueltos por una única lectura `resources/read` de un binario/adjunto. Se comprueba antes de obtener el payload (para campos de registro, un probe `bin_size` en Odoo 19 y anteriores, y el tamaño del adjunto asociado o un recuento `field.size` en Odoo 20; para adjuntos, el `file_size` almacenado), así que una lectura demasiado grande se rechaza con un error limpio en lugar de cargarse en memoria y recodificarse a base64. En Odoo 20, un campo binario no almacenado (como `avatar_128`), o uno almacenado cuyo adjunto el usuario no puede leer, se comprueba solo después de la lectura. |
 
-### Acotación multiempresa (`ODOO_ALLOWED_COMPANIES`)
+#### Acotación multiempresa (`ODOO_ALLOWED_COMPANIES`)
 
 En bases de datos multiempresa, la empresa por defecto del usuario autenticado se aplica
 a cada registro que el servidor crea, y la visibilidad de registros abarca todas las
@@ -433,7 +433,7 @@ usuario en el propio Odoo.
 
 ### Transportes
 
-### stdio (por defecto)
+#### stdio (por defecto)
 
 Entrada/salida estándar — lo que usan las aplicaciones de IA de escritorio como Claude
 Desktop. Sin configuración adicional:
@@ -442,7 +442,7 @@ Desktop. Sin configuración adicional:
 uvx odoomcp
 ```
 
-### streamable-http
+#### streamable-http
 
 Transporte HTTP para conectividad remota y acceso de tipo REST.
 
@@ -532,14 +532,14 @@ de Odoo **sin el módulo MCP**. Omite todos los controles de acceso MCP y está 
 
 **No uses nunca el modo YOLO en producción.**
 
-### Niveles
+#### Niveles
 
 | Nivel | Variable | Permite | Bloquea | Uso |
 |-------|----------|---------|---------|-----|
 | Solo lectura | `ODOO_YOLO=read` | Todas las lecturas (search, read, count) | Toda escritura; muestra indicadores READ-ONLY | Demos, pruebas |
 | Acceso total | `ODOO_YOLO=true` | Todo — CRUD completo en todos los modelos | Nada; muestra avisos FULL ACCESS | Solo entornos aislados |
 
-### Ejemplos de configuración
+#### Ejemplos de configuración
 
 <details>
 <summary>Modo YOLO de solo lectura (más seguro para demos)</summary>
@@ -585,7 +585,7 @@ de Odoo **sin el módulo MCP**. Omite todos los controles de acceso MCP y está 
 ```
 </details>
 
-### Cuándo usarlo
+#### Cuándo usarlo
 
 Buen encaje: desarrollo local con datos de prueba, demos rápidas con datos no
 sensibles, probar clientes MCP antes de instalar el módulo, prototipado en entornos
@@ -594,7 +594,7 @@ aislados.
 Nunca: entornos de producción, instancias con datos reales de clientes, servidores de
 desarrollo compartidos, cualquier entorno con información sensible.
 
-### Notas de seguridad
+#### Notas de seguridad
 
 - Se conecta directamente a los endpoints XML-RPC estándar de Odoo, o a JSON-2
   (`/json/2`) en Odoo 19 y posteriores con una clave API (consulta `ODOO_RPC_TRANSPORT`)
@@ -603,8 +603,9 @@ desarrollo compartidos, cualquier entorno con información sensible.
 - Todas las operaciones se registran en el log pero no se restringen
 - El listado de modelos muestra más de 200 modelos en lugar de solo los habilitados
 - En modo YOLO completo (`true`), las herramientas de creación, actualización y
-  eliminación alcanzan todos los modelos, incluidas las scheduled actions (`ir.cron`) y server actions (`ir.actions.server`). `call_model_method` se
-  niega a ejecutarlas directamente, pero una acción modificada se ejecuta en su próxima
+  eliminación alcanzan todos los modelos, incluidas las acciones programadas (`ir.cron`)
+  y las acciones de servidor (`ir.actions.server`). `call_model_method` se niega a
+  ejecutarlas directamente, pero una acción modificada se ejecuta en su próxima
   programación o disparador. Es el mismo poder que tiene un administrador en la interfaz
   de Odoo.
 
@@ -628,11 +629,11 @@ desarrollo compartidos, cualquier entorno con información sensible.
 | `list_record_attachments` | Listar los ficheros adjuntos a un registro, del más reciente al más antiguo |
 | `upload_attachment` | Adjuntar un fichero a un registro (base64, hasta unos 2,9 MB) |
 | `post_message` | Publicar un mensaje en el chatter de un registro (`mail.thread`) |
-| `call_model_method` | Escape hatch opcional para workflow methods (solo YOLO completo) |
+| `call_model_method` | Escape hatch opcional para métodos de workflow (solo YOLO completo) |
 
-### Lectura de datos
+#### Lectura de datos
 
-#### `search_records`
+##### `search_records`
 
 ```json
 {
@@ -651,7 +652,7 @@ desarrollo compartidos, cualquier entorno con información sensible.
   ocultan y se listan en el `note` de la respuesta; solicítalos explícitamente por
   nombre si los necesitas
 
-#### `get_record`
+##### `get_record`
 
 ```json
 {
@@ -665,7 +666,7 @@ Mismas reglas de selección de campos que `search_records`. Las respuestas inclu
 también `related_summaries`: nombres para mostrar de las colecciones one2many/many2many
 con 5 IDs como máximo, de modo que las relaciones pequeñas se leen sin búsquedas extra.
 
-#### `get_fields`
+##### `get_fields`
 
 Describe los campos de un modelo — tipo, etiqueta, obligatorio/solo lectura, destino de
 la relación y opciones de selección. Úsalo para descubrir el esquema de un modelo antes
@@ -687,19 +688,19 @@ parámetros se trata como si se omitiera.
 }
 ```
 
-#### `get_current_context`
+##### `get_current_context`
 
 Devuelve el contexto de sesión actual: el usuario conectado, su zona horaria, la empresa
 activa más las demás empresas permitidas, y una guía para el manejo de fechas en UTC.
-Útil cuando no estás seguro de en nombre de qué usuario o empresa se ejecuta una
-petición, o cómo interpretar las fechas. Los clientes que cumplen la especificación
-también reciben este contexto en las instrucciones de la respuesta `initialize`.
+Útil cuando no estás seguro de qué usuario o empresa ejecuta una petición, o de cómo
+interpretar las fechas. Los clientes que cumplen la especificación también reciben este
+contexto en las instrucciones de la respuesta `initialize`.
 
 ```json
 {}
 ```
 
-#### `list_models`
+##### `list_models`
 
 Lista todos los modelos habilitados para acceso MCP.
 
@@ -707,7 +708,7 @@ Lista todos los modelos habilitados para acceso MCP.
 {}
 ```
 
-#### `list_resource_templates`
+##### `list_resource_templates`
 
 Lista las plantillas de URI de recursos disponibles y sus patrones.
 
@@ -715,13 +716,13 @@ Lista las plantillas de URI de recursos disponibles y sus patrones.
 {}
 ```
 
-#### `aggregate_records`
+##### `aggregate_records`
 
 Agregación en el servidor. Úsala siempre que la pregunta sea "totales/recuentos/
 agrupaciones" en lugar de "lista de registros" — empuja el trabajo a PostgreSQL en vez de
 extraer filas crudas. Despacha a `formatted_read_group` en Odoo 19+ (el nuevo método
 dedicado) y recurre a `read_group` con normalización de la respuesta en versiones
-anteriores. Los usuarios ven una forma de respuesta consistente en todas las versiones
+anteriores. Quien llama ve una forma de respuesta consistente en todas las versiones
 soportadas. Cuando se omite `aggregates`, se usa `["__count"]` por defecto, de modo que
 cada grupo lleva siempre un recuento. Cuando existen más grupos más allá de la página
 solicitada, la respuesta pone `has_more: true` y un `next_hint` con el offset de
@@ -743,9 +744,9 @@ seguimiento.
 }
 ```
 
-### Escritura de datos
+#### Escritura de datos
 
-#### `create_record`
+##### `create_record`
 
 ```json
 {
@@ -758,7 +759,7 @@ seguimiento.
 }
 ```
 
-#### `create_records`
+##### `create_records`
 
 Crea varios registros de un modelo en una sola llamada. Acepta 100 registros como
 máximo. Es una única transacción: o se crean todos o no se crea ninguno.
@@ -773,7 +774,7 @@ máximo. Es una única transacción: o se crean todos o no se crea ninguno.
 }
 ```
 
-#### `update_record`
+##### `update_record`
 
 ```json
 {
@@ -786,7 +787,7 @@ máximo. Es una única transacción: o se crean todos o no se crea ninguno.
 }
 ```
 
-#### `update_records`
+##### `update_records`
 
 Actualiza varios registros de un modelo en una sola llamada, con 100 registros
 distintos como máximo. Si algún ID no existe, no se escribe nada. Los registros
@@ -820,7 +821,7 @@ Valores distintos por registro, en una única transacción, en Odoo 19 y posteri
 La segunda forma usa `web_save_multi` de Odoo. En modo estándar, el módulo MCP de Odoo
 debe permitir ese método.
 
-#### `delete_record`
+##### `delete_record`
 
 ```json
 {
@@ -829,9 +830,9 @@ debe permitir ese método.
 }
 ```
 
-### Archivos y adjuntos
+#### Archivos y adjuntos
 
-#### `read_attachment`
+##### `read_attachment`
 
 Lee un fichero: un adjunto o un campo binario como una imagen. Pasa exactamente uno de
 `uri` (una URI `odoo://attachment/{id}` o `odoo://{model}/record/{id}/{field}` de un
@@ -852,7 +853,7 @@ resultado de herramienta) o `attachment_id`. El resultado depende del fichero:
 La mayoría de clientes de chat no leen los recursos MCP por sí solos, así que esta
 herramienta es la vía para que el modelo vea un fichero.
 
-#### `list_record_attachments`
+##### `list_record_attachments`
 
 Lista los ficheros adjuntos a un registro, del más reciente al más antiguo, con nombre,
 mimetype, tamaño, fecha y una URI `odoo://attachment/{id}` para cada uno. Los ficheros
@@ -866,7 +867,7 @@ como URIs.
 }
 ```
 
-#### `upload_attachment`
+##### `upload_attachment`
 
 Adjunta un fichero a un registro. `data` es el fichero en base64 plano, con un máximo de
 unos 2,9 MB tras la decodificación. Odoo detecta el mimetype cuando no se indica
@@ -887,9 +888,9 @@ unos 2,9 MB tras la decodificación. Odoo detecta el mimetype cuando no se indic
 En modo estándar, el usuario necesita acceso de escritura sobre el modelo del registro y
 acceso de creación sobre `ir.attachment`.
 
-### Colaboración
+#### Colaboración
 
-#### `post_message`
+##### `post_message`
 
 Publica un mensaje en el chatter de un registro (`mail.thread`). `subtype="note"`
 (por defecto) es un registro interno; `subtype="comment"` notifica a los seguidores.
@@ -915,9 +916,9 @@ existentes.
 }
 ```
 
-### Escape hatch para workflows
+#### Escape hatch para workflows
 
-#### `call_model_method`
+##### `call_model_method`
 
 Escape hatch genérico de XML-RPC `execute_kw` — invoca **métodos de negocio**
 públicos, para acciones de workflow no cubiertas por el CRUD (postear factura (action_post),
@@ -948,7 +949,8 @@ argumento en `keyword_arguments`, por su nombre de parámetro, por ejemplo
 > [!WARNING]
 > Esta herramienta puede seguir invocando métodos destructivos de workflow
 > (p. ej. `button_draft`, `action_cancel`, `toggle_active`, métodos personalizados).
-> Actívala solo en entornos de confianza donde aceptes el blast radius. Las record rules y ACL de Odoo siguen aplicándose al usuario autenticado.
+> Actívala solo en entornos de confianza donde aceptes el radio de impacto. Las record
+> rules y ACL de Odoo siguen aplicándose al usuario autenticado.
 
 ```json
 {
@@ -969,7 +971,7 @@ argumento en `keyword_arguments`, por su nombre de parámetro, por ejemplo
 
 ### Selección de campos y contexto por llamada
 
-### Selección inteligente de campos
+#### Selección inteligente de campos
 
 Cuando omites el parámetro `fields` (o lo pones a `null`), el servidor selecciona
 automáticamente los campos más relevantes de cada modelo con un algoritmo de puntuación:
@@ -997,7 +999,7 @@ inteligentes o `["__all__"]` deja ese campo fuera. La respuesta lo lista en
 `skipped_fields` y en la nota. Una lectura con una lista de campos explícita falla con el
 error de acceso.
 
-### Contexto por llamada
+#### Contexto por llamada
 
 `search_records`, `get_record`, `aggregate_records`, `create_record`, `create_records`,
 `update_record` y `update_records` aceptan un objeto `context` opcional. Acepta cuatro
@@ -1080,12 +1082,12 @@ Asistente de IA (Claude, Copilot, etc.)
 ### Seguridad
 
 - Usa siempre HTTPS en entornos de producción
-- Guarda tus claves API con seguridad y rotalas con regularidad
+- Guarda tus claves API con seguridad y rótalas con regularidad
 - Configura el acceso a modelos con cuidado — habilita solo los necesarios
-- El módulo MCP respeta los access rights y record rules integrados de Odoo
+- El módulo MCP respeta los access rights y las record rules integrados de Odoo
 - Cada clave API está vinculada a un usuario concreto con sus permisos
 
-### Cómo aplica el modo estándar la lista de modelos permitidos
+#### Cómo aplica el modo estándar la lista de modelos permitidos
 
 En modo estándar, el servidor comprueba la lista de modelos permitidos del módulo MCP
 antes de cada llamada. También comprueba los modelos que una llamada alcanza a través de
@@ -1122,8 +1124,8 @@ son campos de su registro de partner: si `res.partner` permite escrituras, puede
 modificarse ahí incluso cuando `res.company` sea de solo lectura. Un valor many2one
 cuenta como parte del registro que lo contiene: su nombre se devuelve en lecturas y
 agrupaciones, y puedes asignarlo a un registro de un modelo que no esté habilitado. Lo
-mismo aplica a un enlace many2many (`[4, id]`, `[3, id]`, `[6, 0, ids]`). Los derechos
-de acceso y las record rules y access rights propios de Odoo se aplican a cada llamada.
+mismo aplica a un enlace many2many (`[4, id]`, `[3, id]`, `[6, 0, ids]`). Los access
+rights y las record rules propios de Odoo se aplican a cada llamada.
 
 ### Resolución de problemas
 

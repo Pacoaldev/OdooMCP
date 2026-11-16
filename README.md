@@ -20,33 +20,33 @@ Explore, query and update business data, handle attachments and trigger supporte
 
 Use this guide as a route through the project: start with a working connection, configure the access model that fits your environment, then explore the available operations.
 
-### 01 · Understand the project
+**01 · Understand the project**
 
 - [What it does](#what-it-does)
 - [Quick start](#quick-start)
 - [Connect your client](#connect-your-client)
 - [Alternative installs](#alternative-installs)
 
-### 02 · Configure the connection
+**02 · Configure the connection**
 
 - [Configuration](#configuration)
 - [Transports](#transports)
 - [Setting up Odoo (standard mode)](#setting-up-odoo-standard-mode)
 - [YOLO mode](#yolo-mode)
 
-### 03 · Work with Odoo data
+**03 · Work with Odoo data**
 
 - [Tools reference](#tools-reference)
 - [Field selection and per-call context](#field-selection-and-per-call-context)
 - [Resource URIs](#resource-uris)
 - [How it works](#how-it-works)
 
-### 04 · Operate safely
+**04 · Operate safely**
 
 - [Security](#security)
 - [Troubleshooting](#troubleshooting)
 
-### 05 · Develop and contribute
+**05 · Develop and contribute**
 
 - [Development and testing](#development-and-testing)
 - [License](#license)
@@ -338,7 +338,7 @@ Then use the full path to the package in your MCP configuration.
 
 ### Configuration
 
-### Required environment variables
+#### Required environment variables
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
@@ -366,7 +366,7 @@ alone is enough, because Odoo reads the user from the key.
   checks every call. If you grant a permission, it can take up to 5 minutes to work.
   Restart the server to apply it at once.
 
-### Advanced variables
+#### Advanced variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -385,7 +385,7 @@ alone is enough, because Odoo reads the user from the key.
 | `ODOO_MCP_SESSION_IDLE_TIMEOUT` | — | Seconds of inactivity before a `streamable-http` session is closed and its server-side state freed, e.g. `600`. Unset means sessions never expire. |
 | `ODOO_MCP_MAX_BINARY_SIZE` | `52428800` | Maximum bytes returned by a single binary/attachment `resources/read`. Checked before the payload is fetched (for record fields, a `bin_size` probe on Odoo 19 and older, and the size of the backing attachment or a `field.size` count on Odoo 20; for attachments, the stored `file_size`), so an oversized read is refused with a clean error instead of being pulled into memory and re-encoded to base64 for the wire. On Odoo 20 a non-stored binary field (such as `avatar_128`), or a stored one whose attachment the user cannot read, is checked only after the fetch. |
 
-### Multi-company scoping (`ODOO_ALLOWED_COMPANIES`)
+#### Multi-company scoping (`ODOO_ALLOWED_COMPANIES`)
 
 In multi-company databases, the authenticated user's default company applies to every
 record the server creates, and record visibility spans all of the user's allowed
@@ -424,7 +424,7 @@ allowed companies in Odoo itself.
 
 ### Transports
 
-### stdio (default)
+#### stdio (default)
 
 Standard input/output — what desktop AI applications like Claude Desktop use. No extra
 configuration:
@@ -433,7 +433,7 @@ configuration:
 uvx odoomcp
 ```
 
-### streamable-http
+#### streamable-http
 
 HTTP transport for remote connectivity and REST-style access.
 
@@ -521,14 +521,14 @@ testing and demos**.
 
 **Never use YOLO mode in production.**
 
-### Levels
+#### Levels
 
 | Level | Flag | Allows | Blocks | Use for |
 |-------|------|--------|--------|---------|
 | Read-only | `ODOO_YOLO=read` | All reads (search, read, count) | All writes; shows READ-ONLY indicators | Demos, testing |
 | Full access | `ODOO_YOLO=true` | Everything — full CRUD on every model | Nothing; shows FULL ACCESS warnings | Isolated environments only |
 
-### Configuration examples
+#### Configuration examples
 
 <details>
 <summary>Read-only YOLO mode (safer for demos)</summary>
@@ -574,7 +574,7 @@ testing and demos**.
 ```
 </details>
 
-### When to use it
+#### When to use it
 
 Good fit: local development with test data, quick demos with non-sensitive data, testing
 MCP clients before installing the module, prototyping in isolated environments.
@@ -582,7 +582,7 @@ MCP clients before installing the module, prototyping in isolated environments.
 Never: production environments, instances with real customer data, shared development
 servers, anything with sensitive information.
 
-### Security notes
+#### Security notes
 
 - Connects directly to Odoo's standard XML-RPC endpoints, or to JSON-2 (`/json/2`) on
   Odoo 19 and later with an API key (see `ODOO_RPC_TRANSPORT`)
@@ -617,9 +617,9 @@ servers, anything with sensitive information.
 | `post_message` | Post a message to a record's chatter (`mail.thread`) |
 | `call_model_method` | Opt-in escape hatch for workflow methods (full YOLO only) |
 
-### Reading data
+#### Reading data
 
-#### `search_records`
+##### `search_records`
 
 ```json
 {
@@ -637,7 +637,7 @@ servers, anything with sensitive information.
 - `["__all__"]`: all fields (with caution) — credential-like fields are withheld and
   listed in the response's `note`; request them explicitly by name if needed
 
-#### `get_record`
+##### `get_record`
 
 ```json
 {
@@ -651,7 +651,7 @@ Same field selection rules as `search_records`. Responses also include
 `related_summaries`: display names for one2many/many2many collections holding at most 5
 ids, so small relations are readable without extra lookups.
 
-#### `get_fields`
+##### `get_fields`
 
 Describe a model's fields — type, label, required/readonly, relation target, and
 selection options. Use it to discover a model's schema before reading or writing records.
@@ -671,7 +671,7 @@ selection lists. An empty list `[]` for either parameter is treated like omittin
 }
 ```
 
-#### `get_current_context`
+##### `get_current_context`
 
 Return the current session context: the connected user, their timezone, the active
 company plus any other allowed companies, and UTC datetime-handling guidance. Useful
@@ -683,7 +683,7 @@ instructions.
 {}
 ```
 
-#### `list_models`
+##### `list_models`
 
 List all models enabled for MCP access.
 
@@ -691,7 +691,7 @@ List all models enabled for MCP access.
 {}
 ```
 
-#### `list_resource_templates`
+##### `list_resource_templates`
 
 List available resource URI templates and their patterns.
 
@@ -699,7 +699,7 @@ List available resource URI templates and their patterns.
 {}
 ```
 
-#### `aggregate_records`
+##### `aggregate_records`
 
 Server-side aggregation. Use this whenever the question is "totals/counts/groupings"
 rather than "list of records" — it pushes the work down to PostgreSQL instead of pulling
@@ -726,9 +726,9 @@ follow-up offset.
 }
 ```
 
-### Writing data
+#### Writing data
 
-#### `create_record`
+##### `create_record`
 
 ```json
 {
@@ -741,7 +741,7 @@ follow-up offset.
 }
 ```
 
-#### `create_records`
+##### `create_records`
 
 Create several records of one model in one call. The call accepts at most 100 records.
 It is one transaction: either every record is created or none.
@@ -756,7 +756,7 @@ It is one transaction: either every record is created or none.
 }
 ```
 
-#### `update_record`
+##### `update_record`
 
 ```json
 {
@@ -769,7 +769,7 @@ It is one transaction: either every record is created or none.
 }
 ```
 
-#### `update_records`
+##### `update_records`
 
 Update several records of one model in one call, with at most 100 distinct records. If
 any ID does not exist, nothing is written. Archived records can be updated, for example
@@ -802,7 +802,7 @@ Different values per record, in one transaction, on Odoo 19 and later:
 The second form uses Odoo's `web_save_multi`. In standard mode, the Odoo MCP module must
 allow that method.
 
-#### `delete_record`
+##### `delete_record`
 
 ```json
 {
@@ -811,9 +811,9 @@ allow that method.
 }
 ```
 
-### Files and attachments
+#### Files and attachments
 
-#### `read_attachment`
+##### `read_attachment`
 
 Read a file: an attachment or a binary field such as an image. Pass exactly one of `uri`
 (an `odoo://attachment/{id}` or `odoo://{model}/record/{id}/{field}` URI from a tool
@@ -834,7 +834,7 @@ result) or `attachment_id`. The result depends on the file:
 Most chat clients never read MCP resources by themselves, so this tool is the way for the
 model to see a file.
 
-#### `list_record_attachments`
+##### `list_record_attachments`
 
 List the files attached to a record, newest first, with name, mimetype, size, date and an
 `odoo://attachment/{id}` URI each. Files behind binary fields such as `image_1920` are
@@ -847,7 +847,7 @@ not listed, because `get_record` returns those as URIs.
 }
 ```
 
-#### `upload_attachment`
+##### `upload_attachment`
 
 Attach a file to a record. `data` is the file as plain base64, at most about 2.9 MB after
 decoding. Odoo detects the mimetype when `mimetype` is not given. The result carries the
@@ -867,9 +867,9 @@ chatter, pass the ID to `post_message` as `attachment_ids`.
 In standard mode, the user needs write access on the record's model and create access on
 `ir.attachment`.
 
-### Collaboration
+#### Collaboration
 
-#### `post_message`
+##### `post_message`
 
 Post a message to a record's chatter (`mail.thread`). `subtype="note"` (default) is an
 internal log; `subtype="comment"` notifies followers. Set `body_is_html=true` for HTML
@@ -894,9 +894,9 @@ markup. Optional `subject` sets a message subject line; optional `partner_ids` a
 }
 ```
 
-### Workflow escape hatch
+#### Workflow escape hatch
 
-#### `call_model_method`
+##### `call_model_method`
 
 Generic XML-RPC `execute_kw` escape hatch — invokes public **business** methods, for
 workflow actions not covered by CRUD (post invoice, confirm sale order, validate picking,
@@ -946,7 +946,7 @@ by its parameter name, for example `{"partner_ids": [3]}`.
 
 ### Field selection and per-call context
 
-### Smart field selection
+#### Smart field selection
 
 When you omit the `fields` parameter (or set it to `null`), the server automatically
 selects the most relevant fields for each model using a scoring algorithm:
@@ -971,7 +971,7 @@ contact for a user without accounting rights, a smart-default or `["__all__"]` r
 leaves that field out. The response lists it in `skipped_fields` and in the note. A read
 with an explicit field list still fails with the access error.
 
-### Per-call context
+#### Per-call context
 
 `search_records`, `get_record`, `aggregate_records`, `create_record`, `create_records`,
 `update_record` and `update_records` take an optional `context` object. It accepts four
@@ -1057,7 +1057,7 @@ AI Assistant (Claude, Copilot, etc.)
 - The MCP module respects Odoo's built-in access rights and record rules
 - Each API key is linked to a specific user with their permissions
 
-### How standard mode applies the model allowlist
+#### How standard mode applies the model allowlist
 
 In standard mode, the server checks the MCP module's model allowlist before each call. It
 also checks the models that a call reaches through another model:
