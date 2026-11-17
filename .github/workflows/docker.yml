@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Optional release-style tag to publish (e.g. 1.0.2); leaves the git tag untouched"
+        required: false
+        type: string
 
 env:
   GHCR_IMAGE: ghcr.io/${{ github.repository }}
@@ -76,8 +81,10 @@ jobs:
         tags: |
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
-          type=raw,value=latest,enable=${{ github.event_name == 'release' }}
-          type=sha,enable=${{ github.event_name == 'workflow_dispatch' }}
+          type=semver,pattern={{version}},value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
+          type=semver,pattern={{major}}.{{minor}},value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
+          type=raw,value=latest,enable=${{ github.event_name == 'release' || inputs.tag != '' }}
+          type=sha,enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag == '' }}
 
     - name: Build and push
       uses: docker/build-push-action@v7
