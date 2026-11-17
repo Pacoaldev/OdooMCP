@@ -107,6 +107,8 @@ missing-attribute = "ignore"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+# Vendored Odoo addon: Odoo import-__init__ patterns, manifest dicts, ORM test style.
+extend-exclude = ["addons/mcp_server"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "B", "Q"]

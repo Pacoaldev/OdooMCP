@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, Optional
 
-from .rules import Match, Rule, get_rule, rules_for
+from .rules import Rule, get_rule, rules_for
 
 logger = logging.getLogger(__name__)
 
@@ -414,7 +414,7 @@ class _PythonRuleVisitor(ast.NodeVisitor):
         self.definitions.append((node.name, node.lineno))
         self.generic_visit(node)
 
-    visit_AsyncFunctionDef = visit_FunctionDef
+    visit_AsyncFunctionDef = visit_FunctionDef  # noqa: N815 — ast.NodeVisitor API name
 
 
 def _match_python(
