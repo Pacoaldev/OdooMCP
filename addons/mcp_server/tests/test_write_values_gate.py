@@ -137,9 +137,7 @@ class TestWriteValuesGate(common.TransactionCase):
 
         _set_models(self.env, res__partner__category=("read", "create"))
         self.tools.create_record("res.partner", values)
-        self.assertTrue(
-            self.env["res.partner.category"].search([("name", "=", "New Tag")])
-        )
+        self.assertTrue(self.env["res.partner.category"].search([("name", "=", "New Tag")]))
 
     def test_nested_update_and_delete_are_gated(self):
         for command, operation in (
@@ -155,8 +153,9 @@ class TestWriteValuesGate(common.TransactionCase):
                     updates=[{"id": self.partner.id, "values": {"category_id": [c]}}],
                 ),
             ):
-                with self.subTest(command=command), self.assertRaisesRegex(
-                    AccessError, f"Operation '{operation}'"
+                with (
+                    self.subTest(command=command),
+                    self.assertRaisesRegex(AccessError, f"Operation '{operation}'"),
                 ):
                     call()
         self.assertEqual(self.tag.name, "Gate Tag")
@@ -166,18 +165,14 @@ class TestWriteValuesGate(common.TransactionCase):
             "res.partner", self.partner.id, {"category_id": [[4, self.tag.id]]}
         )
         self.assertEqual(self.partner.category_id, self.tag)
-        self.tools.update_records(
-            "res.partner", [self.partner.id], {"category_id": [[6, 0, []]]}
-        )
+        self.tools.update_records("res.partner", [self.partner.id], {"category_id": [[6, 0, []]]})
         self.assertFalse(self.partner.category_id)
 
     def test_many2one_pair_is_written_as_its_id(self):
         for value in ([self.fr.id, "France"], [self.fr.id], {"id": self.fr.id}):
             self.partner.country_id = False
             with self.subTest(value=value):
-                self.tools.update_record(
-                    "res.partner", self.partner.id, {"country_id": value}
-                )
+                self.tools.update_record("res.partner", self.partner.id, {"country_id": value})
                 self.assertEqual(self.partner.country_id, self.fr)
 
         result = self.tools.create_record(
@@ -188,28 +183,20 @@ class TestWriteValuesGate(common.TransactionCase):
                 "child_ids": [[0, 0, {"name": "Child", "country_id": [self.fr.id]}]],
             },
         )
-        created = self.env["res.partner"].browse(
-            result["structuredContent"]["record"]["id"]
-        )
+        created = self.env["res.partner"].browse(result["structuredContent"]["record"]["id"])
         self.assertEqual(created.country_id, self.fr)
         self.assertEqual(created.child_ids.country_id, self.fr)
 
     def test_other_many2one_shapes_are_refused(self):
         for value in ("France", [1, 2, 3], {"name": "France"}, True):
-            with self.subTest(value=value), self.assertRaisesRegex(
-                UserError, "takes a record id"
-            ):
-                self.tools.update_record(
-                    "res.partner", self.partner.id, {"country_id": value}
-                )
+            with self.subTest(value=value), self.assertRaisesRegex(UserError, "takes a record id"):
+                self.tools.update_record("res.partner", self.partner.id, {"country_id": value})
 
     def test_empty_many2one_forms_follow_core(self):
         for value in ("", []):
             self.partner.country_id = self.fr
             with self.subTest(value=value):
-                self.tools.update_record(
-                    "res.partner", self.partner.id, {"country_id": value}
-                )
+                self.tools.update_record("res.partner", self.partner.id, {"country_id": value})
                 self.assertFalse(self.partner.country_id)
         # A record with an empty name reads back as [id, false].
         self.tools.update_record(
@@ -234,13 +221,9 @@ class TestWriteValuesGate(common.TransactionCase):
             ),
         )
         for index, call in enumerate(calls):
-            with self.subTest(call=index), self.assertRaisesRegex(
-                UserError, "must be an object"
-            ):
+            with self.subTest(call=index), self.assertRaisesRegex(UserError, "must be an object"):
                 call()
-        self.assertFalse(
-            self.env["res.partner.category"].search([("name", "=", "Pair Tag")])
-        )
+        self.assertFalse(self.env["res.partner.category"].search([("name", "=", "Pair Tag")]))
 
     def test_command_lists_hold_only_commands_or_ids(self):
         tag = self.tag.id
@@ -258,12 +241,8 @@ class TestWriteValuesGate(common.TransactionCase):
                 with self.assertRaisesRegex(UserError, "list of commands"):
                     self.tools.create_record("res.partner", values)
                 with self.assertRaises(utils.UnreadableWriteValues):
-                    utils.legacy_write_denial(
-                        self.env, "res.partner", "create", [values], {}
-                    )
-        self.assertFalse(
-            self.env["res.partner.category"].search([("name", "=", "Dict Tag")])
-        )
+                    utils.legacy_write_denial(self.env, "res.partner", "create", [values], {})
+        self.assertFalse(self.env["res.partner.category"].search([("name", "=", "Dict Tag")]))
         self.assertEqual(self._operations({"category_id": []}), [])
         # Core cannot write a float id: its browse() raises TypeError.
         for ids in ([float(tag)], [True]):
@@ -278,16 +257,12 @@ class TestWriteValuesGate(common.TransactionCase):
         """
         _set_models(self.env, mail__mail=("read", "create"), ir__attachment=None)
         for value in ([{"name": "gate_dict.txt"}], [[5], {"name": "gate_dict.txt"}]):
-            with self.subTest(value=value), self.assertRaisesRegex(
-                UserError, "list of commands"
-            ):
+            with self.subTest(value=value), self.assertRaisesRegex(UserError, "list of commands"):
                 self.tools.create_record(
                     "mail.mail",
                     {"subject": "Dict", "unrestricted_attachment_ids": value},
                 )
-        self.assertFalse(
-            self.env["ir.attachment"].search([("name", "=", "gate_dict.txt")])
-        )
+        self.assertFalse(self.env["ir.attachment"].search([("name", "=", "gate_dict.txt")]))
 
     def test_a_computed_many2many_needs_write_on_the_linked_records(self):
         field = "unrestricted_attachment_ids"
@@ -342,16 +317,12 @@ class TestWriteValuesGate(common.TransactionCase):
         for values, creating, expected in cases:
             with self.subTest(values=values, creating=creating):
                 self.assertEqual(
-                    list(
-                        utils.iter_nested_operations(users, values, creating=creating)
-                    ),
+                    list(utils.iter_nested_operations(users, values, creating=creating)),
                     expected,
                 )
         _set_models(self.env, res__users=("read", "write"))
         user = create_test_user(self.env, "Gate Tags", "gate_tags")
-        self.tools.update_record(
-            "res.users", user.id, {"category_id": [[4, self.tag.id]]}
-        )
+        self.tools.update_record("res.users", user.id, {"category_id": [[4, self.tag.id]]})
         self.assertEqual(user.category_id, self.tag)
 
     def test_core_can_name_the_parent_of_a_new_record(self):
@@ -381,9 +352,7 @@ class TestWriteValuesGate(common.TransactionCase):
         _set_models(self.env, res__partner__bank=("read", "write"))
         self._allow_context_keys("default_partner_id", "default_bank_ids")
         values = {"name": "U", "login": "gate_default", "bank_ids": [[5]]}
-        self.assertIsNone(
-            utils.legacy_write_denial(self.env, "res.users", "create", [values], {})
-        )
+        self.assertIsNone(utils.legacy_write_denial(self.env, "res.users", "create", [values], {}))
         denied = utils.legacy_write_denial(
             self.env,
             "res.users",
@@ -419,9 +388,7 @@ class TestWriteValuesGate(common.TransactionCase):
             with self.subTest(method=method):
                 self.assertIn(
                     "operation 'unlink' on model 'res.partner.bank'",
-                    utils.legacy_write_denial(
-                        self.env, "res.users", method, args, context
-                    ),
+                    utils.legacy_write_denial(self.env, "res.users", method, args, context),
                 )
 
     def test_a_field_with_an_inverse_is_replaced_on_create(self):
@@ -475,9 +442,7 @@ class TestWriteValuesGate(common.TransactionCase):
         for values, creating, expected in cases:
             with self.subTest(values=values, creating=creating):
                 self.assertEqual(
-                    list(
-                        utils.iter_nested_operations(model, values, creating=creating)
-                    ),
+                    list(utils.iter_nested_operations(model, values, creating=creating)),
                     expected,
                 )
 
@@ -507,9 +472,7 @@ class TestWriteValuesGate(common.TransactionCase):
             with self.subTest(values=values):
                 self.assertEqual(
                     list(
-                        utils.iter_nested_operations(
-                            self.env["res.partner"], values, creating=True
-                        )
+                        utils.iter_nested_operations(self.env["res.partner"], values, creating=True)
                     ),
                     expected,
                 )
@@ -544,17 +507,11 @@ class TestWriteValuesGate(common.TransactionCase):
             [1, on_users.id, {"name": "v.txt"}],
             [2, on_users.id],
         ):
-            with self.subTest(command=command), self.assertRaisesRegex(
-                AccessError, refused
-            ):
-                self.tools.update_record(
-                    "mail.message", message.id, {"attachment_ids": [command]}
-                )
+            with self.subTest(command=command), self.assertRaisesRegex(AccessError, refused):
+                self.tools.update_record("mail.message", message.id, {"attachment_ids": [command]})
         self.assertEqual(on_users.name, "u.txt")
         # Linking an attachment to the message does not change the attachment.
-        self.tools.update_record(
-            "mail.message", message.id, {"attachment_ids": [[4, on_users.id]]}
-        )
+        self.tools.update_record("mail.message", message.id, {"attachment_ids": [[4, on_users.id]]})
         self.tools.update_record(
             "mail.message",
             message.id,
@@ -588,9 +545,7 @@ class TestWriteValuesGate(common.TransactionCase):
         )
         attachment_id = result["structuredContent"]["record"]["id"]
         with self.assertRaisesRegex(AccessError, refused):
-            self.tools.update_record(
-                "ir.attachment", attachment_id, {"res_model": "res.users"}
-            )
+            self.tools.update_record("ir.attachment", attachment_id, {"res_model": "res.users"})
 
         on_users = self.env["ir.attachment"].create(
             {
@@ -601,9 +556,7 @@ class TestWriteValuesGate(common.TransactionCase):
             }
         )
         for call in (
-            lambda: self.tools.update_record(
-                "ir.attachment", on_users.id, {"name": "v.txt"}
-            ),
+            lambda: self.tools.update_record("ir.attachment", on_users.id, {"name": "v.txt"}),
             lambda: self.tools.delete_record("ir.attachment", on_users.id),
         ):
             with self.assertRaisesRegex(AccessError, refused):
@@ -617,8 +570,9 @@ class TestWriteValuesGate(common.TransactionCase):
             ("ir.module.module", "button_immediate_uninstall"),
             ("base.module.upgrade", "upgrade_module"),
         ):
-            with self.subTest(model=model), self.assertRaisesRegex(
-                AccessError, "not permitted via MCP"
+            with (
+                self.subTest(model=model),
+                self.assertRaisesRegex(AccessError, "not permitted via MCP"),
             ):
                 self.tools._validate_method_call(model, self.env[model], method)
 
@@ -637,14 +591,10 @@ class TestWriteValuesGate(common.TransactionCase):
         field_uri = build_field_uri("ir.attachment", attachment.id, "raw")
         with patch.object(mcp_mixin, "MAX_RESOURCE_BYTES", 4):
             with self.assertRaisesRegex(UserError, "limit of resources/read"):
-                self.tools._read_attachment(
-                    build_attachment_uri(attachment.id), attachment.id
-                )
+                self.tools._read_attachment(build_attachment_uri(attachment.id), attachment.id)
             with self.assertRaisesRegex(UserError, "limit of resources/read"):
                 self.tools._read_record_field(field_uri, parse_field_uri(field_uri))
-        entry = self.tools._read_attachment(
-            build_attachment_uri(attachment.id), attachment.id
-        )
+        entry = self.tools._read_attachment(build_attachment_uri(attachment.id), attachment.id)
         self.assertEqual(base64.b64decode(entry["blob"]), bytes(range(10)))
 
     def test_export_data_is_not_mapped(self):
@@ -653,9 +603,7 @@ class TestWriteValuesGate(common.TransactionCase):
     def test_web_save_multi_needs_write(self):
         self.assertEqual(utils.map_method_to_operation("web_save_multi"), "write")
         _set_models(self.env, res__partner=("read", "create"))
-        self.assertFalse(
-            utils.check_mcp_access(self.env, "res.partner", "web_save_multi")
-        )
+        self.assertFalse(utils.check_mcp_access(self.env, "res.partner", "web_save_multi"))
 
     def test_legacy_operands(self):
         env = self.env
@@ -740,9 +688,7 @@ class TestWriteValuesGate(common.TransactionCase):
         owner = {"context": {"default_res_model": "res.partner", "default_res_id": 1}}
         self.assertIn(
             "context key 'default_res_model'",
-            utils.legacy_write_denial(
-                env, "ir.attachment", "create", [{"name": "a"}], owner
-            ),
+            utils.legacy_write_denial(env, "ir.attachment", "create", [{"name": "a"}], owner),
         )
         _set_models(env, mail__message=("read", "write"))
         message = env["mail.message"].create({"body": "ctx"})
@@ -802,13 +748,10 @@ class TestWriteValuesGate(common.TransactionCase):
         allowed.update(lang="en_US", uid=self.env.uid)
         for method, args, kwargs in calls[1:]:
             with self.subTest(method=method, context="built-in keys"):
-                self.assertNotIn(
-                    "context key", denial(method, args, kwargs, allowed) or ""
-                )
+                self.assertNotIn("context key", denial(method, args, kwargs, allowed) or "")
         create_test_config_settings(
             self.env,
-            mcp_proxy_context_keys=" check_move_validity ,_import_current_module,,"
-            " default_comment",
+            mcp_proxy_context_keys=" check_move_validity ,_import_current_module,, default_comment",
         ).execute()
         for method, args, kwargs in calls[1:]:
             with self.subTest(method=method, context="setting"):
@@ -836,12 +779,11 @@ class TestWriteValuesGate(common.TransactionCase):
                 {"context": [["_import_current_module", "base"]]},
                 [["context", {"_import_current_module": "base"}]],
             ):
-                with self.subTest(method=method, kwargs=kwargs), self.assertRaises(
-                    utils.UnreadableWriteValues
+                with (
+                    self.subTest(method=method, kwargs=kwargs),
+                    self.assertRaises(utils.UnreadableWriteValues),
                 ):
-                    utils.legacy_write_denial(
-                        self.env, "res.partner", method, [[pid], {}], kwargs
-                    )
+                    utils.legacy_write_denial(self.env, "res.partner", method, [[pid], {}], kwargs)
         # A read writes nothing.
         for context in ({"_force_unlink": True}, [["_force_unlink", True]]):
             with self.subTest(context=context):
@@ -883,9 +825,7 @@ class TestWriteValuesGate(common.TransactionCase):
             with self.subTest(method=method):
                 self.assertIn(
                     "operation 'write' on model 'res.users' (field 'res_model')",
-                    utils.legacy_write_denial(
-                        self.env, "ir.attachment", method, args, {}
-                    ),
+                    utils.legacy_write_denial(self.env, "ir.attachment", method, args, {}),
                 )
 
     def test_web_save_multi_reads_back_only_id_and_display_name(self):
@@ -945,17 +885,13 @@ class TestWriteValuesGate(common.TransactionCase):
         ):
             with self.subTest(method=method, args=args, kwargs=kwargs):
                 self.assertIsNone(
-                    utils.legacy_write_denial(
-                        self.env, "res.partner", method, args, kwargs
-                    )
+                    utils.legacy_write_denial(self.env, "res.partner", method, args, kwargs)
                 )
 
     def test_model_names_are_logged_on_one_line(self):
         with self.assertLogs(utils._logger, "WARNING") as logs:
             self.assertFalse(
-                utils.check_model_operation_allowed(
-                    self.env, "res.users\nforged line", "write"
-                )
+                utils.check_model_operation_allowed(self.env, "res.users\nforged line", "write")
             )
         self.assertNotIn("\n", "".join(logs.output))
 
@@ -999,9 +935,7 @@ class TestLegacyWriteValuesGate(common.HttpCase):
             res__partner__category=None,
         )
 
-    def _execute(
-        self, method, args, kwargs=None, model="res.partner", uid=None, password=None
-    ):
+    def _execute(self, method, args, kwargs=None, model="res.partner", uid=None, password=None):
         response = self.url_open(
             "/mcp/xmlrpc/object",
             data=xmlrpclib.dumps(
@@ -1024,29 +958,25 @@ class TestLegacyWriteValuesGate(common.HttpCase):
     def test_nested_command_is_refused(self):
         # HttpCase runs the route on a read-only cursor, where log_event writes
         # no row, so the test checks the call that writes it.
-        with patch.object(
-            type(self.env["mcp.log"]), "log_permission_denied", autospec=True
-        ) as denied, self.assertRaises(xmlrpclib.Fault) as caught:
-            self._execute(
-                "create", [{"name": "L", "category_id": [[0, 0, {"name": "L Tag"}]]}]
-            )
+        with (
+            patch.object(
+                type(self.env["mcp.log"]), "log_permission_denied", autospec=True
+            ) as denied,
+            self.assertRaises(xmlrpclib.Fault) as caught,
+        ):
+            self._execute("create", [{"name": "L", "category_id": [[0, 0, {"name": "L Tag"}]]}])
         self.assertEqual(caught.exception.faultCode, 403)
         self.assertIn(
-            "operation 'create' on model 'res.partner.category' "
-            "(field 'category_id')",
+            "operation 'create' on model 'res.partner.category' (field 'category_id')",
             caught.exception.faultString,
         )
         denied.assert_called_once()
         self.assertEqual(denied.call_args.kwargs["user_id"], self.user.id)
         self.assertEqual(denied.call_args.kwargs["endpoint"], "/mcp/xmlrpc/object")
-        self.assertIn(
-            "'res.partner.category'", denied.call_args.kwargs["error_message"]
-        )
+        self.assertIn("'res.partner.category'", denied.call_args.kwargs["error_message"])
         # An empty array of keyword arguments is no keyword argument, as in core.
         for kwargs in ({}, []):
-            with self.subTest(kwargs=kwargs), self.assertRaises(
-                xmlrpclib.Fault
-            ) as caught:
+            with self.subTest(kwargs=kwargs), self.assertRaises(xmlrpclib.Fault) as caught:
                 self._execute("create", [{"name": "Plain"}], kwargs)
             # The call passed the gate: the fault comes from core's dispatch.
             self.assertNotIn(caught.exception.faultCode, (400, 403))
@@ -1068,9 +998,10 @@ class TestLegacyWriteValuesGate(common.HttpCase):
             # Passlib refuses to hash it, for an existing user only.
             (self.user.id, "x" * 5000),
         ):
-            with self.subTest(uid=uid, password=password), self.assertRaises(
-                xmlrpclib.Fault
-            ) as caught:
+            with (
+                self.subTest(uid=uid, password=password),
+                self.assertRaises(xmlrpclib.Fault) as caught,
+            ):
                 self._execute(
                     "unlink",
                     [[on_users.id]],
@@ -1097,9 +1028,7 @@ class TestLegacyWriteValuesGate(common.HttpCase):
                 model="mail.mail",
             )
         self.assertEqual(caught.exception.faultCode, 403)
-        self.assertIn(
-            "operation 'write' on model 'ir.attachment'", caught.exception.faultString
-        )
+        self.assertIn("operation 'write' on model 'ir.attachment'", caught.exception.faultString)
 
     def test_call_shapes_and_context_defaults_are_refused(self):
         partner = self.env["res.partner"].create({"name": "Shape"})
@@ -1118,9 +1047,7 @@ class TestLegacyWriteValuesGate(common.HttpCase):
                 "context key 'default_category_id'",
             ),
         ):
-            with self.subTest(kwargs=kwargs), self.assertRaises(
-                xmlrpclib.Fault
-            ) as caught:
+            with self.subTest(kwargs=kwargs), self.assertRaises(xmlrpclib.Fault) as caught:
                 self._execute("write", args, kwargs)
             self.assertEqual(caught.exception.faultCode, code)
             self.assertIn(text, caught.exception.faultString)
@@ -1137,9 +1064,7 @@ class TestLegacyWriteValuesGate(common.HttpCase):
                         (api.RPC_FAULT_CODE_APPLICATION_ERROR, str(error)),
                     )
                 self.assertIsNotNone(logs.records[0].exc_info)
-                self.assertEqual(
-                    api._audit_code_for(error), api.XMLRPC_FAULT_CODES["bad_request"]
-                )
+                self.assertEqual(api._audit_code_for(error), api.XMLRPC_FAULT_CODES["bad_request"])
 
     def test_export_data_is_refused(self):
         with self.assertRaises(xmlrpclib.Fault) as caught:

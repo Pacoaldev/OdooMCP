@@ -87,7 +87,7 @@ class OauthClient(models.Model, ClientMixin):
     client_secret_hash = fields.Char(
         copy=False,
         readonly=True,
-        help="SHA-256 hash of the client secret. The secret itself is never " "stored.",
+        help="SHA-256 hash of the client secret. The secret itself is never stored.",
     )
     is_confidential = fields.Boolean(
         string="Confidential",
@@ -108,8 +108,7 @@ class OauthClient(models.Model, ClientMixin):
     created_via = fields.Char(
         string="Created Via",
         index=True,
-        help="How the client was provisioned, e.g. 'dcr' for dynamic client "
-        "registration.",
+        help="How the client was provisioned, e.g. 'dcr' for dynamic client registration.",
     )
     active = fields.Boolean(
         default=True,
@@ -145,9 +144,7 @@ class OauthClient(models.Model, ClientMixin):
         incident response). Checked against the *real* user before any sudo().
         """
         if not self.env.user.has_group("mcp_server.group_mcp_admin"):
-            raise AccessError(
-                _("Only MCP administrators may change OAuth client status.")
-            )
+            raise AccessError(_("Only MCP administrators may change OAuth client status."))
 
     def action_deactivate(self):
         """Admin action (client form header): block this client's access.
@@ -177,9 +174,7 @@ class OauthClient(models.Model, ClientMixin):
     def _compute_is_confidential(self):
         for client in self:
             methods = (client.token_endpoint_auth_method or "").split()
-            client.is_confidential = bool(client.client_secret_hash) and (
-                "none" not in methods
-            )
+            client.is_confidential = bool(client.client_secret_hash) and ("none" not in methods)
 
     # ------------------------------------------------------------------
     # Internal helpers

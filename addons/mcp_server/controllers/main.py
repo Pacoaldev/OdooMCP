@@ -35,7 +35,6 @@ def require_mcp_enabled(func):
 
 
 class McpAPIController(http.Controller):
-
     # auth="none": public health probe (returns only liveness status + module
     # version, no user data); csrf=False: GET-only machine endpoint (no
     # session/state mutation).
@@ -50,9 +49,7 @@ class McpAPIController(http.Controller):
         }
         return response_utils.success_response(data)
 
-    @http.route(
-        "/mcp/system/info", type="http", auth="public", methods=["GET"], csrf=False
-    )
+    @http.route("/mcp/system/info", type="http", auth="public", methods=["GET"], csrf=False)
     @auth.require_api_key
     @rate_limit
     @require_mcp_enabled
@@ -68,9 +65,7 @@ class McpAPIController(http.Controller):
         system_info_data = utils.get_system_info(env)
         return response_utils.success_response(system_info_data)
 
-    @http.route(
-        "/mcp/auth/validate", type="http", auth="public", methods=["GET"], csrf=False
-    )
+    @http.route("/mcp/auth/validate", type="http", auth="public", methods=["GET"], csrf=False)
     @auth.require_api_key
     @rate_limit
     @require_mcp_enabled
@@ -142,9 +137,7 @@ class McpAPIController(http.Controller):
 
         # Check if the model itself exists in ir.model
         # to give a more specific error if not.
-        ir_model = (
-            env["ir.model"].sudo().search([("model", "=", model_tech_name)], limit=1)
-        )
+        ir_model = env["ir.model"].sudo().search([("model", "=", model_tech_name)], limit=1)
         if not ir_model:
             # Log error only if we have a valid environment
             error_message = f"Model '{model_tech_name}' not found in Odoo instance."

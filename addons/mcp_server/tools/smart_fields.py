@@ -81,8 +81,7 @@ def is_sensitive_field_name(field_name: str) -> bool:
     for sequence in SENSITIVE_MARKER_SEQUENCES:
         width = len(sequence)
         if any(
-            tuple(segments[i : i + width]) == sequence
-            for i in range(len(segments) - width + 1)
+            tuple(segments[i : i + width]) == sequence for i in range(len(segments) - width + 1)
         ):
             return True
     return segments[-1] in SENSITIVE_FIELD_MARKERS

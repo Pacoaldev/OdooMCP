@@ -32,7 +32,7 @@ class OauthAuthorizationCode(models.Model, AuthorizationCodeMixin):
         required=True,
         index=True,
         copy=False,
-        help="SHA-256 hash of the authorization code; the raw code is never " "stored.",
+        help="SHA-256 hash of the authorization code; the raw code is never stored.",
     )
     client = fields.Many2one(
         "mcp.oauth.client",
@@ -52,8 +52,7 @@ class OauthAuthorizationCode(models.Model, AuthorizationCodeMixin):
     )
     redirect_uri = fields.Char(
         string="Redirect URI",
-        help="Redirect URI the code was issued for; must match exactly at "
-        "redemption.",
+        help="Redirect URI the code was issued for; must match exactly at redemption.",
     )
     scope = fields.Char(
         string="Scope",
@@ -81,8 +80,7 @@ class OauthAuthorizationCode(models.Model, AuthorizationCodeMixin):
     used = fields.Boolean(
         default=False,
         copy=False,
-        help="Set once the code has been redeemed; a single-use replay is then "
-        "detectable.",
+        help="Set once the code has been redeemed; a single-use replay is then detectable.",
     )
     refresh_family_id = fields.Char(
         string="Refresh Family",
@@ -106,9 +104,7 @@ class OauthAuthorizationCode(models.Model, AuthorizationCodeMixin):
             # The consent step (oauth_server.authorize) stashes the scope actually
             # granted by the resource owner; fall back to the requested scope when
             # absent (e.g. a code minted outside that flow).
-            "scope": getattr(request, "_mcp_granted_scope", None)
-            or oauth2_request.scope
-            or "",
+            "scope": getattr(request, "_mcp_granted_scope", None) or oauth2_request.scope or "",
             "code_challenge": data.get("code_challenge"),
             "code_challenge_method": data.get("code_challenge_method") or "S256",
             "resource": data.get("resource"),
@@ -153,9 +149,7 @@ class OauthAuthorizationCode(models.Model, AuthorizationCodeMixin):
         the code produced -- not every token of the client+user -- so a replay
         cannot force-log-out unrelated sessions (RFC 6749 4.1.2 / RFC 9700).
         """
-        spent = self.search(
-            [("code_hash", "=", _sha256(code)), ("used", "=", True)], limit=1
-        )
+        spent = self.search([("code_hash", "=", _sha256(code)), ("used", "=", True)], limit=1)
         if spent and spent.refresh_family_id:
             self.env["mcp.oauth.token"]._revoke_family(spent.refresh_family_id)
 

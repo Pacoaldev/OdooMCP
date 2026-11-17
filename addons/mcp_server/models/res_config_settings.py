@@ -155,9 +155,7 @@ class ResConfigSettings(models.TransientModel):
         params.set_bool("mcp_server.enable_oauth", self.mcp_enable_oauth)
         params.set_int("mcp_server.request_limit", self.mcp_request_limit)
         params.set_bool("mcp_server.enable_logging", self.mcp_enable_logging)
-        params.set_bool(
-            "mcp_server.enable_rate_limiting", self.mcp_enable_rate_limiting
-        )
+        params.set_bool("mcp_server.enable_rate_limiting", self.mcp_enable_rate_limiting)
         params.set_int("mcp_server.log_retention_days", self.mcp_log_retention_days)
         params.set_int("mcp_server.default_limit", self.mcp_default_limit)
         params.set_int("mcp_server.max_limit", self.mcp_max_limit)
@@ -169,9 +167,7 @@ class ResConfigSettings(models.TransientModel):
         # A Char: write the stripped value. set_str keeps an empty string as an
         # empty value; the runtime reader (utils.get_allowed_origins) treats a
         # falsy value as "no restriction" either way.
-        params.set_str(
-            "mcp_server.allowed_origins", (self.mcp_allowed_origins or "").strip()
-        )
+        params.set_str("mcp_server.allowed_origins", (self.mcp_allowed_origins or "").strip())
 
         # Flush the @ormcache backing every MCP decision -- the per-model gates
         # AND the global switches (is_mcp_enabled / is_oauth_enabled /

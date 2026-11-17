@@ -50,8 +50,7 @@ class SlidingWindowLimiter:
         self._buckets = {
             key: live
             for key, live in (
-                (key, [t for t in stamps if t > cutoff])
-                for key, stamps in self._buckets.items()
+                (key, [t for t in stamps if t > cutoff]) for key, stamps in self._buckets.items()
             )
             if live
         }
@@ -208,9 +207,7 @@ def rate_limit(func):
             )
             anonymous_id = -1
             if not check_rate_limit(anonymous_id, dbname):
-                return _too_many_requests(
-                    "Too many anonymous requests. Please try again later."
-                )
+                return _too_many_requests("Too many anonymous requests. Please try again later.")
             record_api_request(anonymous_id, dbname)
             return func(*args, **kwargs)
 

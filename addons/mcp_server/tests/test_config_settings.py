@@ -206,9 +206,7 @@ class TestConfigSettings(TransactionCase):
         fields = self.env["res.config.settings"]._fields
         settings = list(arch.iter("setting"))
         labels = [
-            label
-            for label in arch.iter("label")
-            if (label.get("for") or "").startswith("mcp_")
+            label for label in arch.iter("label") if (label.get("for") or "").startswith("mcp_")
         ]
         self.assertTrue(settings)
         self.assertTrue(labels)

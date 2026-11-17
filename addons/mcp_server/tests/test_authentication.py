@@ -169,9 +169,7 @@ class TestMCPAuthentication(HttpCase):
     def test_05_system_info_requires_auth(self):
         """Test that system info endpoint requires authentication."""
         # No API key
-        response = self.url_open(
-            "/mcp/system/info", headers={"Accept": "application/json"}
-        )
+        response = self.url_open("/mcp/system/info", headers={"Accept": "application/json"})
         self.assertEqual(response.status_code, 401)
 
         # With valid API key
@@ -246,9 +244,7 @@ class TestSessionAuth(HttpCase):
     def test_02_session_auth_on_validate_endpoint(self):
         """Session-authenticated user can validate auth."""
         self.authenticate("test_session_user", "test_session_pass")
-        response = self.url_open(
-            "/mcp/auth/validate", headers={"Accept": "application/json"}
-        )
+        response = self.url_open("/mcp/auth/validate", headers={"Accept": "application/json"})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.text)
         self.assertTrue(data["success"])
@@ -258,9 +254,7 @@ class TestSessionAuth(HttpCase):
     def test_03_session_auth_on_system_info(self):
         """Session-authenticated user can access /mcp/system/info."""
         self.authenticate("test_session_user", "test_session_pass")
-        response = self.url_open(
-            "/mcp/system/info", headers={"Accept": "application/json"}
-        )
+        response = self.url_open("/mcp/system/info", headers={"Accept": "application/json"})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.text)
         self.assertTrue(data["success"])

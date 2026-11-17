@@ -80,9 +80,7 @@ class RecordFormatter:
         # Record header. Odoo returns False (not None) for unset char
         # fields, so chain with `or` instead of relying on .get defaults.
         record_id = record.get("id", "Unknown")
-        record_name = (
-            record.get("display_name") or record.get("name") or f"Record {record_id}"
-        )
+        record_name = record.get("display_name") or record.get("name") or f"Record {record_id}"
 
         lines.append(f"{indent}{'=' * 50}")
         lines.append(f"{indent}Record: {self.model}/{record_id}")
@@ -154,9 +152,7 @@ class RecordFormatter:
         # read "Not set" -- only a real boolean field renders Yes/No. When the
         # type is unknown (metadata unavailable) fall back to the Python type so
         # a bare boolean still reads Yes/No.
-        if field_type == "boolean" or (
-            field_type == "unknown" and isinstance(value, bool)
-        ):
+        if field_type == "boolean" or (field_type == "unknown" and isinstance(value, bool)):
             return "Yes" if value else "No"
 
         if value is None or value is False:
@@ -203,9 +199,7 @@ class RecordFormatter:
             # Cap long values (e.g. base64 blobs read without metadata)
             return self._truncate_value(str(value), field_name, record_id)
 
-    def _format_numeric_value(
-        self, value: Any, field_type: str, field_meta: Dict[str, Any]
-    ) -> str:
+    def _format_numeric_value(self, value: Any, field_type: str, field_meta: Dict[str, Any]) -> str:
         """Format integer/float/monetary values with thousand separators."""
         if field_type == "monetary":
             # NOTE: currency-symbol formatting via currency_field is out of scope.
@@ -213,11 +207,7 @@ class RecordFormatter:
         if field_type == "float":
             # fields_get() returns Odoo's digits as a (precision, scale) tuple.
             digits = field_meta.get("digits", (16, 2))
-            precision = (
-                digits[1]
-                if isinstance(digits, (tuple, list)) and len(digits) == 2
-                else 2
-            )
+            precision = digits[1] if isinstance(digits, (tuple, list)) and len(digits) == 2 else 2
             return f"{value:,.{precision}f}"
         return f"{value:,}"
 
@@ -468,9 +458,7 @@ class DatasetFormatter:
             if current_page and total_pages:
                 lines.append(f"Page {current_page} of {total_pages}")
             if offset is not None:
-                lines.append(
-                    f"Showing records {offset + 1}-{offset + showing} of {total_count}"
-                )
+                lines.append(f"Showing records {offset + 1}-{offset + showing} of {total_count}")
             else:
                 lines.append(f"Showing {showing} of {total_count} records")
         else:
@@ -485,9 +473,7 @@ class DatasetFormatter:
         if not records:
             lines.append("No records found matching the criteria.")
         else:
-            lines.extend(
-                self._format_result_records(records, fields, offset, fields_metadata)
-            )
+            lines.extend(self._format_result_records(records, fields, offset, fields_metadata))
 
         # Add navigation hints
         navigation = []
@@ -548,10 +534,7 @@ class DatasetFormatter:
                             ftype == "unknown" and isinstance(value, bool)
                         )
                         if not boolean_like and (
-                            value is None
-                            or value is False
-                            or value == ""
-                            or value == []
+                            value is None or value is False or value == "" or value == []
                         ):
                             continue
                         # Checked per shown value, so the note only appears

@@ -106,11 +106,7 @@ class TestOAuth(common.HttpCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         return record
 
     def _register_client(self, redirect_uris=None):
@@ -163,17 +159,13 @@ class TestOAuth(common.HttpCase):
         post_data = dict(params)
         post_data["csrf_token"] = match.group(1)
         post_data["decision"] = "allow"
-        post_resp = self.url_open(
-            "/mcp/oauth/authorize", data=post_data, allow_redirects=False
-        )
+        post_resp = self.url_open("/mcp/oauth/authorize", data=post_data, allow_redirects=False)
         self.assertEqual(post_resp.status_code, 302, post_resp.text[:500])
         query = dict(parse_qsl(urlsplit(post_resp.headers["Location"]).query))
         self.assertIn("code", query, post_resp.headers.get("Location"))
         self.assertEqual(query.get("state"), params["state"])
         # RFC 9207: the issuer identifier rides every authorization redirect.
-        self.assertEqual(
-            (query.get("iss") or "").rstrip("/"), self.base_url().rstrip("/")
-        )
+        self.assertEqual((query.get("iss") or "").rstrip("/"), self.base_url().rstrip("/"))
         return query["code"]
 
     def _exchange_code(
@@ -232,9 +224,7 @@ class TestOAuth(common.HttpCase):
             with self.subTest(path=path):
                 response = self.url_open(path, headers=origin)
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual(
-                    response.headers.get("Access-Control-Allow-Origin"), "*"
-                )
+                self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), "*")
         for path in ("/mcp/oauth/register", "/mcp/oauth/token"):
             with self.subTest(preflight=path):
                 response = self.opener.options(
@@ -247,12 +237,8 @@ class TestOAuth(common.HttpCase):
                     timeout=12,
                 )
                 self.assertEqual(response.status_code, 204)
-                self.assertEqual(
-                    response.headers.get("Access-Control-Allow-Origin"), "*"
-                )
-                self.assertIn(
-                    "POST", response.headers.get("Access-Control-Allow-Methods")
-                )
+                self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), "*")
+                self.assertIn("POST", response.headers.get("Access-Control-Allow-Methods"))
         # The header rides on an error answer too, so the client can read it.
         response = self.url_open(
             "/mcp/oauth/register",
@@ -353,9 +339,7 @@ class TestOAuth(common.HttpCase):
 
     def test_unnamed_client_display_name_falls_back_to_id(self):
         """A client that registers without a name displays its client_id."""
-        client = (
-            self.env["mcp.oauth.client"].sudo().create({"client_id": "no-name-client"})
-        )
+        client = self.env["mcp.oauth.client"].sudo().create({"client_id": "no-name-client"})
         self.assertEqual(client.display_name, "no-name-client")
 
     @mute_logger("odoo.sql_db")
@@ -459,9 +443,7 @@ class TestOAuth(common.HttpCase):
         self.assertEqual(row.auth_method, "oauth")
         self.assertEqual(row.oauth_client_id, client)
         self.assertEqual(row.tool_name, "search_records")
-        auth_success = log_model.search(
-            [("id", ">", before), ("event_type", "=", "auth_success")]
-        )
+        auth_success = log_model.search([("id", ">", before), ("event_type", "=", "auth_success")])
         self.assertFalse(
             auth_success, "the OAuth door must not write a per-request auth_success row"
         )
@@ -511,12 +493,8 @@ class TestOAuth(common.HttpCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("PKCE", response.text)
         # Positive control: the same request WITH a valid S256 challenge passes.
-        ok = self._authorize_params(
-            challenge=_code_challenge(secrets.token_urlsafe(48))
-        )
-        self.assertEqual(
-            self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200
-        )
+        ok = self._authorize_params(challenge=_code_challenge(secrets.token_urlsafe(48)))
+        self.assertEqual(self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200)
 
     def test_oauth_consent_layout_avoids_website_poisoned_frontend_layout(self):
         """Consent/error pages must render via web.layout, not web.login_layout.
@@ -550,9 +528,7 @@ class TestOAuth(common.HttpCase):
         self.assertIn("code_challenge_method", response.text)
         # Positive control: switching the method to S256 (challenge unchanged) passes.
         ok = self._authorize_params(challenge="a" * 43, method="S256")
-        self.assertEqual(
-            self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200
-        )
+        self.assertEqual(self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200)
 
     def test_pkce_wrong_code_verifier_is_rejected(self):
         """A code_verifier not matching the challenge fails the token exchange."""
@@ -605,9 +581,7 @@ class TestOAuth(common.HttpCase):
         self.assertIn("redirect", response.text.lower())
         # Positive control: the registered redirect_uri (only change) is accepted.
         ok = self._authorize_params(challenge=_code_challenge(verifier))
-        self.assertEqual(
-            self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200
-        )
+        self.assertEqual(self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200)
 
     # ------------------------------------------------------------------
     # RFC 8707 audience binding
@@ -850,9 +824,7 @@ class TestOAuth(common.HttpCase):
         request transaction, so only the 401 + challenge is asserted here.
         """
         body = {"jsonrpc": "2.0", "id": 1, "method": "ping"}
-        response = self.url_open(
-            "/mcp", json=body, headers={"Authorization": "Basic dXNlcjpwYXNz"}
-        )
+        response = self.url_open("/mcp", json=body, headers={"Authorization": "Basic dXNlcjpwYXNz"})
         self.assertEqual(response.status_code, 401)
         www = response.headers.get("WWW-Authenticate", "")
         self.assertIn("Bearer", www)
@@ -1053,9 +1025,7 @@ class TestOAuth(common.HttpCase):
             return_value="https://example.test/mcp",
         ):
             audience, _family = (
-                self.env["mcp.oauth.token"]
-                .sudo()
-                ._resolve_audience_and_family(oauth2_request)
+                self.env["mcp.oauth.token"].sudo()._resolve_audience_and_family(oauth2_request)
             )
         self.assertEqual(audience, "https://example.test/mcp")
 
@@ -1078,9 +1048,7 @@ class TestOAuth(common.HttpCase):
             return_value="https://example.test/mcp",
         ):
             audience, _family = (
-                self.env["mcp.oauth.token"]
-                .sudo()
-                ._resolve_audience_and_family(oauth2_request)
+                self.env["mcp.oauth.token"].sudo()._resolve_audience_and_family(oauth2_request)
             )
         self.assertEqual(audience, "https://example.test/mcp")
 
@@ -1136,9 +1104,7 @@ class TestOAuth(common.HttpCase):
         verifier = secrets.token_urlsafe(48)
         resource_slash = self.resource + "/"
         code = self._get_authorization_code(
-            self._authorize_params(
-                challenge=_code_challenge(verifier), resource=resource_slash
-            )
+            self._authorize_params(challenge=_code_challenge(verifier), resource=resource_slash)
         )
         response = self._exchange_code(code, verifier, resource=resource_slash)
         self.assertEqual(response.status_code, 200, response.text[:500])
@@ -1151,9 +1117,7 @@ class TestOAuth(common.HttpCase):
         code = self._get_authorization_code(
             self._authorize_params(challenge=_code_challenge(verifier))
         )
-        response = self._exchange_code(
-            code, verifier, resource="https://other.example/mcp"
-        )
+        response = self._exchange_code(code, verifier, resource="https://other.example/mcp")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json().get("error"), "invalid_request")
 
@@ -1172,9 +1136,7 @@ class TestOAuth(common.HttpCase):
         self.assertEqual(response.status_code, 400, response.text[:300])
         # The canonical resource still renders the consent screen (200).
         ok = self._authorize_params(challenge=_code_challenge(verifier))
-        self.assertEqual(
-            self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200
-        )
+        self.assertEqual(self.url_open("/mcp/oauth/authorize", params=ok).status_code, 200)
 
     # ------------------------------------------------------------------
     # Garbage collection keeps live credentials
@@ -1371,9 +1333,7 @@ class TestOAuth(common.HttpCase):
             dead_family_code.exists(),
             "redeemed code whose family is fully revoked is collected",
         )
-        self.assertFalse(
-            familyless_code.exists(), "redeemed familyless code is collected"
-        )
+        self.assertFalse(familyless_code.exists(), "redeemed familyless code is collected")
         self.assertFalse(unused_code.exists(), "expired unused code is collected")
 
     # ------------------------------------------------------------------
@@ -1389,9 +1349,7 @@ class TestOAuth(common.HttpCase):
         self.assertEqual(prm_body["resource"].rstrip("/"), self.resource.rstrip("/"))
         self.assertEqual(prm_body["authorization_servers"], [base])
         self.assertEqual(prm_body["bearer_methods_supported"], ["header"])
-        self.assertEqual(
-            prm_body["scopes_supported"], ["mcp", "mcp:read", "mcp:write"]
-        )
+        self.assertEqual(prm_body["scopes_supported"], ["mcp", "mcp:read", "mcp:write"])
 
         asm = self.url_open("/.well-known/oauth-authorization-server")
         self.assertEqual(asm.status_code, 200)
@@ -1437,9 +1395,7 @@ class TestOAuth(common.HttpCase):
         post_data = dict(params)
         post_data["csrf_token"] = match.group(1)
         post_data["decision"] = "deny"
-        resp = self.url_open(
-            "/mcp/oauth/authorize", data=post_data, allow_redirects=False
-        )
+        resp = self.url_open("/mcp/oauth/authorize", data=post_data, allow_redirects=False)
         self.assertEqual(resp.status_code, 302)
         location = resp.headers["Location"]
         self.assertTrue(location.startswith(self.redirect_uri), location)
@@ -1447,9 +1403,7 @@ class TestOAuth(common.HttpCase):
         self.assertEqual(query.get("error"), "access_denied")
         self.assertNotIn("code", query)
         self.assertEqual(query.get("state"), params["state"])
-        self.assertEqual(
-            (query.get("iss") or "").rstrip("/"), self.base_url().rstrip("/")
-        )
+        self.assertEqual((query.get("iss") or "").rstrip("/"), self.base_url().rstrip("/"))
 
     # ------------------------------------------------------------------
     # Unknown / inactive client at authorize
@@ -1459,9 +1413,7 @@ class TestOAuth(common.HttpCase):
         self.env["mcp.oauth.client"].sudo().search(
             [("client_id", "=", self.client_id)]
         ).active = False
-        params = self._authorize_params(
-            challenge=_code_challenge(secrets.token_urlsafe(48))
-        )
+        params = self._authorize_params(challenge=_code_challenge(secrets.token_urlsafe(48)))
         resp = self.url_open("/mcp/oauth/authorize", params=params)
         self.assertEqual(resp.status_code, 400)
 
@@ -1514,9 +1466,7 @@ class TestOAuth(common.HttpCase):
         resp = self.url_open(
             "/mcp/oauth/register",
             json={
-                "redirect_uris": [
-                    "https://client.example.com/cb%d" % i for i in range(6)
-                ],
+                "redirect_uris": ["https://client.example.com/cb%d" % i for i in range(6)],
                 "client_name": "Greedy",
                 "scope": "mcp",
             },
@@ -1657,9 +1607,7 @@ class TestOAuth(common.HttpCase):
     def test_dcr_ip_rate_limit_returns_429(self):
         """Registration is capped per IP independently of the API request limit."""
         # Even with the general API limit disabled, the DCR cap still applies.
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "0"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "0")
         oauth_server._dcr_limiter.clear()
         body = {
             "redirect_uris": [self.redirect_uri],
@@ -1745,11 +1693,7 @@ class TestOAuthDisabled(common.HttpCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         return record
 
     def _rpc(self, token, method):

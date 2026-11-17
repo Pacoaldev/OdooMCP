@@ -117,10 +117,11 @@ dmypy.json
 .pytype/
 cython_debug/
 
-# Docs
+# Docs (handbook local, materiales de estudio — no publicar)
 docs/_build/
 /site
 docs/
+docs/handbook_OdooMCP.html
 odd/
 
 # Misc

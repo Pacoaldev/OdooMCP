@@ -158,9 +158,7 @@ def _json_safe(value, max_records=MAX_LIMIT):
         try:
             out = [{"id": rec.id, "display_name": rec.display_name} for rec in capped]
         except Exception:  # noqa: BLE001 - best-effort; keep ids on failure
-            _logger.debug(
-                "call_model_method: display_name unavailable for %s", value._name
-            )
+            _logger.debug("call_model_method: display_name unavailable for %s", value._name)
             out = list(capped.ids)
         if len(value) > max_records:
             out.append(
@@ -225,9 +223,7 @@ class McpToolsWrite(models.AbstractModel):
         cap = self._mcp_int_config("mcp_server.max_batch_size", MAX_BATCH_SIZE)
         return cap if cap > 0 else MAX_BATCH_SIZE
 
-    def _resolve_record_ids_or_raise(
-        self, model, model_rs, record_ids, cap, deduplicate=False
-    ):
+    def _resolve_record_ids_or_raise(self, model, model_rs, record_ids, cap, deduplicate=False):
         """Coerce, cap, (optionally) dedupe and existence-check a list of ids.
 
         Shared by ``call_model_method`` and ``update_records``. The caller
@@ -290,9 +286,7 @@ class McpToolsWrite(models.AbstractModel):
         lines = [message]
         for data in records.read(_ESSENTIAL_FIELDS):
             url = f"{base_url}/odoo/{model}/{data['id']}" if base_url else ""
-            rows.append(
-                {"id": data["id"], "display_name": data["display_name"], "url": url}
-            )
+            rows.append({"id": data["id"], "display_name": data["display_name"], "url": url})
             line = "- [%s] %s" % (data["id"], data["display_name"] or "")
             lines.append(f"{line} {url}".rstrip())
         structured = {
@@ -324,9 +318,7 @@ class McpToolsWrite(models.AbstractModel):
                 },
                 "values": {
                     "type": "object",
-                    "description": (
-                        'Field values for the new record, e.g. {"name": "ACME"}.'
-                    ),
+                    "description": ('Field values for the new record, e.g. {"name": "ACME"}.'),
                 },
             },
             "required": ["model", "values"],
@@ -422,8 +414,7 @@ class McpToolsWrite(models.AbstractModel):
             if not isinstance(entry, dict) or not entry:
                 raise UserError(
                     _(
-                        "Entry %(index)s of 'records' must be a non-empty "
-                        "field->value object.",
+                        "Entry %(index)s of 'records' must be a non-empty field->value object.",
                         index=index,
                     )
                 )
@@ -466,9 +457,7 @@ class McpToolsWrite(models.AbstractModel):
                 },
                 "values": {
                     "type": "object",
-                    "description": (
-                        'Field values to update, e.g. {"name": "New name"}.'
-                    ),
+                    "description": ('Field values to update, e.g. {"name": "New name"}.'),
                 },
             },
             "required": ["model", "record_id", "values"],
@@ -531,16 +520,13 @@ class McpToolsWrite(models.AbstractModel):
                     "type": "array",
                     "items": {"type": "integer"},
                     "minItems": 1,
-                    "description": (
-                        "Form (a): the record IDs that all receive 'values'."
-                    ),
+                    "description": ("Form (a): the record IDs that all receive 'values'."),
                 },
                 "values": {
                     "type": "object",
                     "minProperties": 1,
                     "description": (
-                        "Form (a): field values applied to every record in "
-                        "'record_ids'."
+                        "Form (a): field values applied to every record in 'record_ids'."
                     ),
                 },
                 "updates": {
@@ -579,19 +565,14 @@ class McpToolsWrite(models.AbstractModel):
 
         shared = record_ids is not None or values is not None
         if updates is not None and shared:
-            raise UserError(
-                _("Pass either 'record_ids' + 'values' or 'updates', not both.")
-            )
+            raise UserError(_("Pass either 'record_ids' + 'values' or 'updates', not both."))
         if updates is not None:
             records = self._update_records_each(model, model_rs, updates)
         elif shared:
             records = self._update_records_shared(model, model_rs, record_ids, values)
         else:
             raise UserError(
-                _(
-                    "Pass 'record_ids' + 'values', or 'updates' (a list of "
-                    "{id, values})."
-                )
+                _("Pass 'record_ids' + 'values', or 'updates' (a list of {id, values}).")
             )
 
         message = _(
@@ -739,9 +720,7 @@ class McpToolsWrite(models.AbstractModel):
             values_list.append(self._normalize_write_values(model_rs, entry["values"]))
 
         # Coerce + cap + existence check; duplicates are then a client error.
-        records = self._resolve_record_ids_or_raise(
-            model, model_rs, ids, self._max_batch_size()
-        )
+        records = self._resolve_record_ids_or_raise(model, model_rs, ids, self._max_batch_size())
         seen, duplicates = set(), []
         for rid in records.ids:
             if rid in seen and rid not in duplicates:
@@ -978,8 +957,7 @@ class McpToolsWrite(models.AbstractModel):
         if cls_attr == getattr(model_rs, method, None):
             raise AccessError(
                 _(
-                    "Method '%s' cannot be called via MCP: it is not a method of "
-                    "the records.",
+                    "Method '%s' cannot be called via MCP: it is not a method of the records.",
                     method,
                 )
             )
@@ -1049,9 +1027,7 @@ class McpToolsWrite(models.AbstractModel):
 
         # Per-model opt-in gate: enabled AND allow_method_calls=True.
         if not utils.check_model_method_allowed(self.env, model):
-            raise AccessError(
-                _("Method calls are not enabled for model '%s' via MCP.", model)
-            )
+            raise AccessError(_("Method calls are not enabled for model '%s' via MCP.", model))
 
         if not isinstance(method, str) or not method.strip():
             raise UserError(_("No method name provided."))
@@ -1187,7 +1163,7 @@ class McpToolsWrite(models.AbstractModel):
         if len(raw) > MAX_UPLOAD_BYTES:
             raise UserError(
                 _(
-                    "File is %(size)s bytes, above the %(cap)s-byte upload " "limit.",
+                    "File is %(size)s bytes, above the %(cap)s-byte upload limit.",
                     size=len(raw),
                     cap=MAX_UPLOAD_BYTES,
                 )
@@ -1201,9 +1177,7 @@ class McpToolsWrite(models.AbstractModel):
             self._check_op(model, "write")
             record = self._browse_record_or_raise(model, model_rs, record_id)
             values.update({"res_model": model, "res_id": record.id})
-        elif not utils.check_model_operation_allowed(
-            self.env, "ir.attachment", "create"
-        ):
+        elif not utils.check_model_operation_allowed(self.env, "ir.attachment", "create"):
             raise AccessError(
                 _(
                     "Standalone attachment upload via MCP requires "
@@ -1262,8 +1236,7 @@ class McpToolsWrite(models.AbstractModel):
                 "body": {
                     "type": "string",
                     "description": (
-                        "Message body (plain text by default; HTML when "
-                        "body_is_html=True)."
+                        "Message body (plain text by default; HTML when body_is_html=True)."
                     ),
                 },
                 "subject": {
@@ -1274,8 +1247,7 @@ class McpToolsWrite(models.AbstractModel):
                     "type": "string",
                     "enum": ["note", "comment"],
                     "description": (
-                        "'note' (internal, default) or 'comment' (notifies "
-                        "followers)."
+                        "'note' (internal, default) or 'comment' (notifies followers)."
                     ),
                 },
                 "message_type": {
@@ -1331,8 +1303,7 @@ class McpToolsWrite(models.AbstractModel):
         if not hasattr(model_rs, "message_post"):
             raise UserError(
                 _(
-                    "Model '%s' does not support chatter "
-                    "(no mail.thread inheritance).",
+                    "Model '%s' does not support chatter (no mail.thread inheritance).",
                     model,
                 )
             )
@@ -1343,9 +1314,7 @@ class McpToolsWrite(models.AbstractModel):
         if isinstance(subtype, str):
             subtype = subtype.strip().lower()
         if not isinstance(subtype, str) or subtype not in _SUBTYPE_XMLID:
-            raise UserError(
-                _("Invalid subtype '%s'; expected 'note' or 'comment'.", subtype)
-            )
+            raise UserError(_("Invalid subtype '%s'; expected 'note' or 'comment'.", subtype))
 
         # Omit partner_ids/attachment_ids when None (empty list can mean
         # "clear all" in some chatter contexts).

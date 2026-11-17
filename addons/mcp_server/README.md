@@ -729,7 +729,7 @@ copy-paste code action:
 
 ```python
 # Server action -> Python Code
-mcp['result'] = {'echo': mcp['args'].get('x')}
+mcp["result"] = {"echo": mcp["args"].get("x")}
 ```
 
 Calling this tool with `{"x": "hello"}` returns `{"echo": "hello"}`.

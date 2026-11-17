@@ -52,9 +52,7 @@ XMLRPC_FAULT_CODES = {
 
 # Fault string for a verified credential whose user lacks the MCP access group;
 # shared by the ``common`` login methods and the ``object`` proxy.
-MCP_GROUP_DENIED_FAULT = (
-    "MCP access denied: user is not a member of the MCP User group."
-)
+MCP_GROUP_DENIED_FAULT = "MCP access denied: user is not a member of the MCP User group."
 
 
 def _check_served_database(db_name: Any) -> None:
@@ -137,12 +135,8 @@ def _fault_for_exception(controller_name: str, exc: Exception) -> Tuple[int, str
         )
         return code, error_sanitizer.sanitize_message(str(exc))
     if code != XMLRPC_FAULT_CODES["internal_error"]:
-        _logger.info(
-            "%s: %s: %s", controller_name, type(exc).__name__, utils._one_line(str(exc))
-        )
-    return code, error_sanitizer.sanitize_exception(
-        exc, f"Unhandled error in {controller_name}"
-    )
+        _logger.info("%s: %s: %s", controller_name, type(exc).__name__, utils._one_line(str(exc)))
+    return code, error_sanitizer.sanitize_exception(exc, f"Unhandled error in {controller_name}")
 
 
 def _get_client_ip() -> Optional[str]:
@@ -168,9 +162,7 @@ def _dispatch_common_service(method: str, params) -> Any:
         user = request.env["res.users"].sudo().browse(result)
         if not auth.user_has_mcp_access(user):
             auth.log_mcp_group_denied(user, api_key_used=False)
-            raise xmlrpclib.Fault(
-                XMLRPC_FAULT_CODES["forbidden"], MCP_GROUP_DENIED_FAULT
-            )
+            raise xmlrpclib.Fault(XMLRPC_FAULT_CODES["forbidden"], MCP_GROUP_DENIED_FAULT)
     return result
 
 
@@ -196,17 +188,14 @@ def _dispatch_service_xmlrpc(controller_name: str, service_dispatch) -> Any:
         return request.make_response(response_data, [("Content-Type", "text/xml")])
     except xmlrpclib.Fault as e:
         _logger.warning(
-            f"{controller_name} XML-RPC Fault: "
-            f"Code {e.faultCode}, String: {e.faultString}"
+            f"{controller_name} XML-RPC Fault: Code {e.faultCode}, String: {e.faultString}"
         )
         return request.make_response(
             xmlrpclib.dumps(e, methodresponse=1, allow_none=1),
             [("Content-Type", "text/xml")],
         )
     except Exception as e:
-        fault_response = _generate_xmlrpc_fault(
-            *_fault_for_exception(controller_name, e)
-        )
+        fault_response = _generate_xmlrpc_fault(*_fault_for_exception(controller_name, e))
         return request.make_response(fault_response, [("Content-Type", "text/xml")])
 
 
@@ -214,9 +203,7 @@ class MCPCommonController(http.Controller):
     # auth="none"/csrf=False: stateless XML-RPC proxy. Credentials travel in the
     # call params (db, uid, api-key), not an Odoo session cookie, so there is no
     # CSRF surface (mirrors stock /xmlrpc/2/common); MCP is gated inside dispatch.
-    @http.route(
-        "/mcp/xmlrpc/common", type="http", auth="none", methods=["POST"], csrf=False
-    )
+    @http.route("/mcp/xmlrpc/common", type="http", auth="none", methods=["POST"], csrf=False)
     def index(self, **kwargs):
         return _dispatch_service_xmlrpc("MCPCommonController", _dispatch_common_service)
 
@@ -225,13 +212,9 @@ class MCPDatabaseController(http.Controller):
     # auth="none"/csrf=False: stateless XML-RPC proxy, same rationale as
     # /mcp/xmlrpc/common -- no session cookie, so no CSRF surface (mirrors stock
     # /xmlrpc/2/db); the global MCP kill-switch is checked inside dispatch.
-    @http.route(
-        "/mcp/xmlrpc/db", type="http", auth="none", methods=["POST"], csrf=False
-    )
+    @http.route("/mcp/xmlrpc/db", type="http", auth="none", methods=["POST"], csrf=False)
     def index(self, **kwargs):
-        return _dispatch_service_xmlrpc(
-            "MCPDatabaseController", db_service.dispatch
-        )
+        return _dispatch_service_xmlrpc("MCPDatabaseController", db_service.dispatch)
 
 
 class MCPObjectController(http.Controller):
@@ -241,9 +224,7 @@ class MCPObjectController(http.Controller):
             # The name comes from a caller without credentials: on one line and
             # cut, so it cannot forge log lines (CWE-117).
             method_name = utils._one_line(xmlrpc_method)[:80]
-            _logger.warning(
-                f"MCPObjectController received non-execute_kw method: {method_name}"
-            )
+            _logger.warning(f"MCPObjectController received non-execute_kw method: {method_name}")
             # The audit row has the same per-IP budget as an auth failure.
             if (
                 request
@@ -366,9 +347,7 @@ class MCPObjectController(http.Controller):
             request.env["res.users"].sudo()._check_uid_passwd(uid, auth_token)
             return
         with request.env.registry.cursor() as cr:
-            api.Environment(cr, SUPERUSER_ID, {})["res.users"]._check_uid_passwd(
-                uid, auth_token
-            )
+            api.Environment(cr, SUPERUSER_ID, {})["res.users"]._check_uid_passwd(uid, auth_token)
 
     def _gate_password_credential(self, uid: Any, auth_token: Any) -> int:
         """Apply the MCP access-group gate to a (uid, password) credential.
@@ -421,17 +400,13 @@ class MCPObjectController(http.Controller):
             # all. No user_id -- the uid is client-supplied and unverified, so
             # attributing the row would let a caller seed the audit log with
             # arbitrary identities. Throttled per IP like every auth failure.
-            auth._log_auth_failure(
-                "Invalid uid/password credential", api_key_used=False
-            )
+            auth._log_auth_failure("Invalid uid/password credential", api_key_used=False)
             raise AccessDenied() from None
 
         user = request.env["res.users"].sudo().browse(uid)
         if not auth.user_has_mcp_access(user):
             auth.log_mcp_group_denied(user, api_key_used=False)
-            raise xmlrpclib.Fault(
-                XMLRPC_FAULT_CODES["forbidden"], MCP_GROUP_DENIED_FAULT
-            )
+            raise xmlrpclib.Fault(XMLRPC_FAULT_CODES["forbidden"], MCP_GROUP_DENIED_FAULT)
         return uid
 
     def _mcp_object_dispatch(self, xmlrpc_method: str, params: list):
@@ -469,9 +444,7 @@ class MCPObjectController(http.Controller):
             # An rpc-/NULL-scope API key, already resolved by _identify_user.
             if not auth.user_has_mcp_access(user_obj):
                 auth.log_mcp_group_denied(user_obj, api_key_used=True)
-                raise xmlrpclib.Fault(
-                    XMLRPC_FAULT_CODES["forbidden"], MCP_GROUP_DENIED_FAULT
-                )
+                raise xmlrpclib.Fault(XMLRPC_FAULT_CODES["forbidden"], MCP_GROUP_DENIED_FAULT)
             user_id = user_obj.id
         else:
             user_id = self._gate_password_credential(uid, auth_token)
@@ -487,8 +460,7 @@ class MCPObjectController(http.Controller):
         fault_code = XMLRPC_FAULT_CODES["forbidden"]
         if not utils.check_mcp_access(env_for_check, model_name, model_method):
             denied_message = (
-                f"Access denied by MCP for model "
-                f"'{model_name}' method '{model_method}'."
+                f"Access denied by MCP for model '{model_name}' method '{model_method}'."
             )
         else:
             # The values of a write can reach other models: x2many commands,
@@ -543,9 +515,7 @@ class MCPObjectController(http.Controller):
 
             return result
         except Exception as e:
-            self._log_call_error(
-                env_for_check, e, model_name, model_method, user_id, ip_address
-            )
+            self._log_call_error(env_for_check, e, model_name, model_method, user_id, ip_address)
             raise
 
     @staticmethod
@@ -565,9 +535,7 @@ class MCPObjectController(http.Controller):
     # call params, not a session cookie, so no CSRF surface (mirrors stock
     # /xmlrpc/2/object). Every call is access-controlled by check_mcp_access
     # (per-model/operation MCP gate) inside _mcp_object_dispatch.
-    @http.route(
-        "/mcp/xmlrpc/object", type="http", auth="none", methods=["POST"], csrf=False
-    )
+    @http.route("/mcp/xmlrpc/object", type="http", auth="none", methods=["POST"], csrf=False)
     def index(self, **kwargs):
         if not utils.is_mcp_enabled():
             fault_response = _generate_xmlrpc_fault(
@@ -585,8 +553,7 @@ class MCPObjectController(http.Controller):
             return request.make_response(response_data, [("Content-Type", "text/xml")])
         except xmlrpclib.Fault as e:
             _logger.warning(
-                f"MCPObjectController XML-RPC Fault: "
-                f"Code {e.faultCode}, String: {e.faultString}"
+                f"MCPObjectController XML-RPC Fault: Code {e.faultCode}, String: {e.faultString}"
             )
             headers = [("Content-Type", "text/xml")]
             if e.faultCode == XMLRPC_FAULT_CODES["rate_limit"]:
@@ -597,7 +564,5 @@ class MCPObjectController(http.Controller):
                 xmlrpclib.dumps(e, methodresponse=1, allow_none=1), headers
             )
         except Exception as e:
-            fault_response = _generate_xmlrpc_fault(
-                *_fault_for_exception("MCPObjectController", e)
-            )
+            fault_response = _generate_xmlrpc_fault(*_fault_for_exception("MCPObjectController", e))
             return request.make_response(fault_response, [("Content-Type", "text/xml")])

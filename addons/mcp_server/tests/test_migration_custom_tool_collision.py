@@ -49,9 +49,7 @@ class TestMigrationCustomToolCollision(common.TransactionCase):
                 "action_id": self.action.id,
             }
         )
-        self.env.cr.execute(
-            "UPDATE mcp_custom_tool SET name = %s WHERE id = %s", (name, tool.id)
-        )
+        self.env.cr.execute("UPDATE mcp_custom_tool SET name = %s WHERE id = %s", (name, tool.id))
         tool.invalidate_recordset(["name"])
         return tool
 
@@ -70,9 +68,7 @@ class TestMigrationCustomToolCollision(common.TransactionCase):
         colliding_upload = self._tool("upload_attachment")
         harmless = self._tool("my_own_tool")
         # The module is loaded by path, so its logger carries the spec name.
-        with self.assertLogs(
-            "mcp_server_post_migrate_19_0_2_2_0", level="WARNING"
-        ) as logs:
+        with self.assertLogs("mcp_server_post_migrate_19_0_2_2_0", level="WARNING") as logs:
             _load_migration().migrate(self.env.cr, "19.0.2.1.2")
         self.assertFalse(colliding.active)
         self.assertFalse(colliding_upload.active)

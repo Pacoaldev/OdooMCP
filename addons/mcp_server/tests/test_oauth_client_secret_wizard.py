@@ -30,9 +30,7 @@ class TestOAuthClientSecretWizard(common.TransactionCase):
             f"mcp_wizard_admin_{unique_id}",
             **{users_groups_field(self.env): [(6, 0, [admin_group.id])]},
         )
-        self.plain = create_test_user(
-            self.env, "MCP Wizard User", f"mcp_wizard_user_{unique_id}"
-        )
+        self.plain = create_test_user(self.env, "MCP Wizard User", f"mcp_wizard_user_{unique_id}")
         grant_mcp_access(self.plain)
         self.Wizard = self.env["mcp.oauth.client.secret.wizard"]
 
@@ -111,9 +109,7 @@ class TestOAuthClientSecretWizard(common.TransactionCase):
 
     def test_several_redirect_uris_one_per_line(self):
         uris = f"{_TEAMS_REDIRECT}\nhttp://localhost:8765/callback"
-        client = self._client_of(
-            self._wizard(redirect_uris=uris)._create_confidential_client()
-        )
+        client = self._client_of(self._wizard(redirect_uris=uris)._create_confidential_client())
         self.assertEqual(
             client.redirect_uris.split(),
             [_TEAMS_REDIRECT, "http://localhost:8765/callback"],
@@ -131,9 +127,7 @@ class TestOAuthClientSecretWizard(common.TransactionCase):
                 self._wizard(**vals)._create_confidential_client()
 
     def test_read_only_scope_is_accepted(self):
-        client = self._client_of(
-            self._wizard(scope="mcp:read")._create_confidential_client()
-        )
+        client = self._client_of(self._wizard(scope="mcp:read")._create_confidential_client())
         self.assertEqual(client.scope, "mcp:read")
 
     def test_non_admin_is_refused(self):
@@ -154,9 +148,7 @@ class TestOAuthClientSecretWizard(common.TransactionCase):
 
         action = self._wizard(client_id=client.id)._regenerate_client_secret()
         new_secret = action["context"]["default_client_secret"]
-        self.assertEqual(
-            action["context"]["default_client_identifier"], client.client_id
-        )
+        self.assertEqual(action["context"]["default_client_identifier"], client.client_id)
         self.assertNotEqual(new_secret, old_secret)
         self.assertTrue(client.check_client_secret(new_secret))
         self.assertFalse(client.check_client_secret(old_secret))

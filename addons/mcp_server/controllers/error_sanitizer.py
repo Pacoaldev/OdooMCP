@@ -65,9 +65,7 @@ UNIQUE_ERROR_MESSAGE = "A record with the same unique values already exists."
 # Marker identifying traceback-shaped text and the shape of the final exception
 # line that ends one.
 _TRACEBACK_MARKER = "Traceback (most recent call last)"
-_EXCEPTION_LINE_RE = re.compile(
-    r"^[A-Za-z_][\w.]*(?:Error|Exception|Warning|Violation)\b"
-)
+_EXCEPTION_LINE_RE = re.compile(r"^[A-Za-z_][\w.]*(?:Error|Exception|Warning|Violation)\b")
 _POSTGRES_DIAG_RE = re.compile(r"^(DETAIL|HINT|CONTEXT|LINE \d)", re.IGNORECASE)
 
 # Internal-detail patterns scrubbed even from "safe" messages (defensive).
@@ -182,13 +180,10 @@ def _insert_fk_message(model, exc):
     if not primary.startswith("insert or update"):
         return None
     model_string = model.env["ir.model"]._get(model._name).name or model._description
-    columns = get_columns_from_sql_diagnostics(
-        model.env.cr, exc.diag, check_registry=True
-    )
+    columns = get_columns_from_sql_diagnostics(model.env.cr, exc.diag, check_registry=True)
     if len(columns) == 1 and (field := model._fields.get(columns[0])):
         return _(
-            "The value for %(field)s refers to a record that does not exist.\n"
-            "Model: %(model)s",
+            "The value for %(field)s refers to a record that does not exist.\nModel: %(model)s",
             field=f"'{field._description_string(model.env)}' ({field.name})",
             model=f"'{model_string}' ({model._name})",
         )

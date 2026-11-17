@@ -29,86 +29,62 @@ class TestRateLimiting(common.TransactionCase):
         )
 
         # Set default rate limiting configuration
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "300"
-        )
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.enable_rate_limiting", "True"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "300")
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.enable_rate_limiting", "True")
 
     def test_get_request_limit_default(self):
         """Test getting default request limit"""
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             limit = rate_limiting.get_request_limit()
             self.assertEqual(limit, 300)
 
     def test_get_request_limit_custom(self):
         """Test getting custom request limit"""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "100"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "100")
 
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             limit = rate_limiting.get_request_limit()
             self.assertEqual(limit, 100)
 
     def test_get_request_limit_unlimited(self):
         """Test getting unlimited request limit (0)"""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "0"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "0")
 
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             limit = rate_limiting.get_request_limit()
             self.assertEqual(limit, 0)  # Should return 0 for unlimited
 
     def test_get_request_limit_minimum_enforced(self):
         """Test that minimum request limit is enforced"""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "5"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "5")
 
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             limit = rate_limiting.get_request_limit()
             self.assertEqual(limit, rate_limiting.MINIMUM_REQUEST_LIMIT)  # Should be 10
 
     @mute_logger("odoo.addons.mcp_server.controllers.rate_limiting")
     def test_get_request_limit_invalid_value(self):
         """Test handling of invalid request limit value"""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "invalid"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "invalid")
 
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             limit = rate_limiting.get_request_limit()
-            self.assertEqual(
-                limit, rate_limiting.DEFAULT_REQUEST_LIMIT
-            )  # Should fallback to 300
+            self.assertEqual(limit, rate_limiting.DEFAULT_REQUEST_LIMIT)  # Should fallback to 300
 
     def test_record_api_request(self):
         """Test recording API requests"""
@@ -119,9 +95,7 @@ class TestRateLimiting(common.TransactionCase):
 
         # Check that request was recorded
         self.assertIn((self.dbname, user_id), rate_limiting._api_limiter._buckets)
-        self.assertEqual(
-            len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 1
-        )
+        self.assertEqual(len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 1)
 
     def test_record_api_request_multiple(self):
         """Test recording multiple API requests"""
@@ -132,9 +106,7 @@ class TestRateLimiting(common.TransactionCase):
             rate_limiting.record_api_request(user_id, self.dbname)
 
         # Check that all requests were recorded
-        self.assertEqual(
-            len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 3
-        )
+        self.assertEqual(len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 3)
 
     def test_record_api_request_cleanup_old(self):
         """Test cleanup of old timestamps"""
@@ -148,9 +120,7 @@ class TestRateLimiting(common.TransactionCase):
         rate_limiting.record_api_request(user_id, self.dbname)
 
         # Should only have the new request
-        self.assertEqual(
-            len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 1
-        )
+        self.assertEqual(len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 1)
 
     def test_check_rate_limit_no_requests(self):
         """Test rate limit check with no previous requests"""
@@ -159,9 +129,7 @@ class TestRateLimiting(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             result = rate_limiting.check_rate_limit(user_id, self.dbname)
             self.assertTrue(result)  # Should be within limit
 
@@ -176,9 +144,7 @@ class TestRateLimiting(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             result = rate_limiting.check_rate_limit(user_id, self.dbname)
             self.assertTrue(result)  # Should be within limit
 
@@ -187,16 +153,12 @@ class TestRateLimiting(common.TransactionCase):
         user_id = self.test_user.id
 
         # Set a limit just above minimum (10) for testing
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "12"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "12")
 
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             # Record requests exceeding the limit of 12
             for _ in range(13):  # More than the limit of 12
                 rate_limiting.record_api_request(user_id, self.dbname)
@@ -209,9 +171,7 @@ class TestRateLimiting(common.TransactionCase):
         user_id = self.test_user.id
 
         # Set a limit above minimum (10) for testing
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "12"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "12")
 
         # Add old timestamps that should be ignored
         old_time = time.monotonic() - 120
@@ -222,9 +182,7 @@ class TestRateLimiting(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             result = rate_limiting.check_rate_limit(user_id, self.dbname)
             self.assertTrue(result)  # Should be within limit (old requests ignored)
 
@@ -233,16 +191,12 @@ class TestRateLimiting(common.TransactionCase):
         user_id = self.test_user.id
 
         # Set unlimited (0)
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "0"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "0")
 
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             # Record many requests
             for _ in range(1000):  # Way more than any reasonable limit
                 rate_limiting.record_api_request(user_id, self.dbname)
@@ -260,9 +214,7 @@ class TestRateLimiting(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             result = test_endpoint(user=self.test_user)
             self.assertEqual(result["success"], True)
             self.assertEqual(result["user_id"], self.test_user.id)
@@ -270,9 +222,7 @@ class TestRateLimiting(common.TransactionCase):
     def test_rate_limit_decorator_disabled(self):
         """Test rate limit decorator when disabled"""
         # Disable rate limiting
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.enable_rate_limiting", "False"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.enable_rate_limiting", "False")
 
         @rate_limiting.rate_limit
         def test_endpoint(user=None):
@@ -281,18 +231,14 @@ class TestRateLimiting(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             result = test_endpoint(user=self.test_user)
             self.assertEqual(result["success"], True)
 
     def test_rate_limit_decorator_exceeded(self):
         """Test rate limit decorator when limit is exceeded"""
         # Set a limit above minimum (10) for testing
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "11"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "11")
 
         @rate_limiting.rate_limit
         def test_endpoint(user=None):
@@ -304,9 +250,7 @@ class TestRateLimiting(common.TransactionCase):
         # Mock the error response to avoid request object issues
         mock_error_response = MagicMock(headers={})
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             with patch(
                 "odoo.addons.mcp_server.controllers.response_utils.error_response",
                 return_value=mock_error_response,
@@ -335,9 +279,7 @@ class TestRateLimiting(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             result = test_endpoint()  # No user provided
             self.assertEqual(result["success"], True)
 
@@ -349,9 +291,7 @@ class TestRateLimiting(common.TransactionCase):
     def test_rate_limit_decorator_anonymous_exceeded(self):
         """Test rate limit decorator for anonymous user when limit exceeded"""
         # Set limit above minimum (10) for testing
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "11"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "11")
 
         @rate_limiting.rate_limit
         def test_endpoint():
@@ -363,18 +303,14 @@ class TestRateLimiting(common.TransactionCase):
         # Mock the error response to avoid request object issues
         mock_error_response = MagicMock(headers={})
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             with patch(
                 "odoo.addons.mcp_server.controllers.response_utils.error_response",
                 return_value=mock_error_response,
             ) as mock_err:
                 # Fill anonymous cache to exceed limit of 11
                 for _ in range(12):
-                    rate_limiting.record_api_request(
-                        -1, self.dbname
-                    )  # Anonymous user ID
+                    rate_limiting.record_api_request(-1, self.dbname)  # Anonymous user ID
 
                 result = test_endpoint()
                 self.assertEqual(result, mock_error_response)
@@ -395,17 +331,13 @@ class TestRateLimiting(common.TransactionCase):
         rate_limiting.record_api_request(user_id, self.dbname)
 
         # Cache should contain both requests
-        self.assertEqual(
-            len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 2
-        )
+        self.assertEqual(len(rate_limiting._api_limiter._buckets[(self.dbname, user_id)]), 2)
 
         # Check rate limit should see both requests
         mock_request = MagicMock()
         mock_request.env = self.env
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             # Should still be within default limit of 300
             result = rate_limiting.check_rate_limit(user_id, self.dbname)
             self.assertTrue(result)

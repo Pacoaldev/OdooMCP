@@ -75,21 +75,13 @@ class TestOAuthConfidential(common.TransactionCase):
     def test_endpoint_auth_method_public(self):
         client = self._client("none")
         self.assertTrue(client.check_endpoint_auth_method("none", "token"))
-        self.assertFalse(
-            client.check_endpoint_auth_method("client_secret_basic", "token")
-        )
-        self.assertFalse(
-            client.check_endpoint_auth_method("client_secret_post", "token")
-        )
+        self.assertFalse(client.check_endpoint_auth_method("client_secret_basic", "token"))
+        self.assertFalse(client.check_endpoint_auth_method("client_secret_post", "token"))
 
     def test_endpoint_auth_method_strict(self):
         client = self._client(_STRICT)
-        self.assertTrue(
-            client.check_endpoint_auth_method("client_secret_basic", "token")
-        )
-        self.assertTrue(
-            client.check_endpoint_auth_method("client_secret_post", "token")
-        )
+        self.assertTrue(client.check_endpoint_auth_method("client_secret_basic", "token"))
+        self.assertTrue(client.check_endpoint_auth_method("client_secret_post", "token"))
         self.assertFalse(client.check_endpoint_auth_method("none", "token"))
 
     def test_endpoint_auth_method_lenient(self):
@@ -237,9 +229,7 @@ class TestOAuthConfidentialToken(common.HttpCase):
 
         self.public, _secret = self._make_client("none")
         self.strict, self.strict_secret = self._make_client(_STRICT, with_secret=True)
-        self.lenient, self.lenient_secret = self._make_client(
-            _LENIENT, with_secret=True
-        )
+        self.lenient, self.lenient_secret = self._make_client(_LENIENT, with_secret=True)
         self.authenticate(self.login, self.password)
 
     # ------------------------------------------------------------------
@@ -286,21 +276,15 @@ class TestOAuthConfidentialToken(common.HttpCase):
             data["client_id"] = client.client_id
         if secret is not None:
             data["client_secret"] = secret
-        return self.url_open(
-            "/mcp/oauth/token", data=data, headers=headers, allow_redirects=False
-        )
+        return self.url_open("/mcp/oauth/token", data=data, headers=headers, allow_redirects=False)
 
-    def _refresh(
-        self, client, refresh_token, *, form_id=True, secret=None, headers=None
-    ):
+    def _refresh(self, client, refresh_token, *, form_id=True, secret=None, headers=None):
         data = {"grant_type": "refresh_token", "refresh_token": refresh_token}
         if form_id:
             data["client_id"] = client.client_id
         if secret is not None:
             data["client_secret"] = secret
-        return self.url_open(
-            "/mcp/oauth/token", data=data, headers=headers, allow_redirects=False
-        )
+        return self.url_open("/mcp/oauth/token", data=data, headers=headers, allow_redirects=False)
 
     def _refresh_token_of(self, client, secret=None):
         """Issue tokens for ``client`` (secret by POST); return the refresh token."""
@@ -389,9 +373,7 @@ class TestOAuthConfidentialToken(common.HttpCase):
         page = self.url_open("/mcp/oauth/authorize", params=params)
         self.assertEqual(page.status_code, 200, page.text[:300])
         csrf = re.search(r'name="csrf_token"\s+value="([^"]+)"', page.text).group(1)
-        pkce = {
-            key: params.pop(key) for key in ("code_challenge", "code_challenge_method")
-        }
+        pkce = {key: params.pop(key) for key in ("code_challenge", "code_challenge_method")}
         response = self.url_open(
             "/mcp/oauth/authorize?" + urlencode(pkce),
             data={**params, "csrf_token": csrf, "decision": "allow"},
@@ -452,9 +434,7 @@ class TestOAuthConfidentialToken(common.HttpCase):
     def test_strict_client_refresh_with_basic_and_post(self):
         refresh_token = self._refresh_token_of(self.strict, self.strict_secret)
         headers = _basic(self.strict.client_id, self.strict_secret)
-        response = self._refresh(
-            self.strict, refresh_token, form_id=False, headers=headers
-        )
+        response = self._refresh(self.strict, refresh_token, form_id=False, headers=headers)
         self._assert_token(response)
         response = self._refresh(
             self.strict, response.json()["refresh_token"], secret=self.strict_secret
@@ -477,9 +457,7 @@ class TestOAuthConfidentialToken(common.HttpCase):
 
     def test_regenerated_secret_replaces_the_old_one(self):
         """After "Regenerate Secret" the old secret fails and the new one works."""
-        manual, old_secret = self._make_client(
-            _STRICT, with_secret=True, created_via="manual"
-        )
+        manual, old_secret = self._make_client(_STRICT, with_secret=True, created_via="manual")
         refresh_token = self._refresh_token_of(manual, old_secret)
         wizard = (
             self.env["mcp.oauth.client.secret.wizard"]
@@ -554,11 +532,7 @@ class TestOAuthConfidentialRegistration(common.HttpCase):
         return self.url_open("/mcp/oauth/register", json=body)
 
     def _stored(self, client_id):
-        return (
-            self.env["mcp.oauth.client"]
-            .sudo()
-            .search([("client_id", "=", client_id)], limit=1)
-        )
+        return self.env["mcp.oauth.client"].sudo().search([("client_id", "=", client_id)], limit=1)
 
     def _assert_secret_only_hashed(self, client, secret):
         self.assertEqual(client.client_secret_hash, _sha256_hex(secret))

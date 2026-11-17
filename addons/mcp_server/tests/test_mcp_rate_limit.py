@@ -45,9 +45,7 @@ class TestMcpRateLimit(common.HttpCase):
         # get_bool), so an unset parameter restores to the same default it
         # falls back to rather than to a string the readers would reinterpret.
         self._orig_limit = self.params.get_int("mcp_server.request_limit", 300)
-        self._orig_enabled = self.params.get_bool(
-            "mcp_server.enable_rate_limiting", True
-        )
+        self._orig_enabled = self.params.get_bool("mcp_server.enable_rate_limiting", True)
         self.params.set_str("mcp_server.enabled", "True")
         self.params.set_str("mcp_server.enable_logging", "True")
         # Enable the limiter explicitly: it defaults to "False", so without this

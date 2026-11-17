@@ -87,9 +87,7 @@ class MCPDispatcher(Dispatcher):
                 _logger.info("MCP request refused: Origin %r not allowed", origin)
                 werkzeug.exceptions.abort(
                     self.request.make_json_response(
-                        jsonrpc.make_error(
-                            None, jsonrpc.SERVER_ERROR, "Origin not allowed."
-                        ),
+                        jsonrpc.make_error(None, jsonrpc.SERVER_ERROR, "Origin not allowed."),
                         status=403,
                     )
                 )
@@ -175,9 +173,7 @@ class MCPDispatcher(Dispatcher):
             self.request.params = dict(args)
             return self._json_rpc_error(None, jsonrpc.PARSE_ERROR, "Parse error")
 
-        self.request_id = (
-            self.jsonrequest.get("id") if isinstance(self.jsonrequest, dict) else None
-        )
+        self.request_id = self.jsonrequest.get("id") if isinstance(self.jsonrequest, dict) else None
         try:
             self.request.params = {**self.jsonrequest, **args}
         except TypeError:
@@ -203,12 +199,8 @@ class MCPDispatcher(Dispatcher):
         if isinstance(exc, HTTPException):
             return exc
         _logger.error("Unhandled error on MCP route", exc_info=exc)
-        return self._json_rpc_error(
-            self.request_id, jsonrpc.INTERNAL_ERROR, GENERIC_ERROR_MESSAGE
-        )
+        return self._json_rpc_error(self.request_id, jsonrpc.INTERNAL_ERROR, GENERIC_ERROR_MESSAGE)
 
     def _json_rpc_error(self, request_id, code, message):
         """Build a JSON-RPC 2.0 error response (no ``data``/traceback)."""
-        return self.request.make_json_response(
-            jsonrpc.make_error(request_id, code, message)
-        )
+        return self.request.make_json_response(jsonrpc.make_error(request_id, code, message))

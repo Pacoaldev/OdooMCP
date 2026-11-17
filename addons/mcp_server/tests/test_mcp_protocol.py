@@ -227,9 +227,7 @@ class TestMcpProtocol(common.HttpCase):
     # ------------------------------------------------------------------
     def _set_allowed_origins(self, value):
         """Set the ``mcp_server.allowed_origins`` param and flush the caches."""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.allowed_origins", value
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.allowed_origins", value)
         utils.clear_mcp_caches()
 
     def _ping_with_origin(self, origin):
@@ -299,9 +297,7 @@ class TestMcpProtocol(common.HttpCase):
 
     def test_missing_key_returns_401(self):
         """A request without an Authorization header is rejected with 401."""
-        response = self._post_rpc(
-            {"jsonrpc": "2.0", "id": 7, "method": "ping"}, api_key=None
-        )
+        response = self._post_rpc({"jsonrpc": "2.0", "id": 7, "method": "ping"}, api_key=None)
         self.assertEqual(response.status_code, 401)
         self.assertIn("Bearer", response.headers.get("WWW-Authenticate", ""))
 
@@ -371,9 +367,7 @@ class TestMcpProtocol(common.HttpCase):
         The scheme word itself must not be looked up as the literal token
         "bearer" through the bare-token tolerance.
         """
-        response = self._post_rpc_raw_auth(
-            {"jsonrpc": "2.0", "id": 23, "method": "ping"}, "Bearer"
-        )
+        response = self._post_rpc_raw_auth({"jsonrpc": "2.0", "id": 23, "method": "ping"}, "Bearer")
         self.assertEqual(response.status_code, 401)
         self.assertIn("Missing credentials", response.text)
 
@@ -393,9 +387,7 @@ class TestMcpProtocol(common.HttpCase):
         # stop authenticating the moment its user is archived.
         archived_user.active = False
 
-        response = self._post_rpc(
-            {"jsonrpc": "2.0", "id": 12, "method": "ping"}, api_key=key
-        )
+        response = self._post_rpc({"jsonrpc": "2.0", "id": 12, "method": "ping"}, api_key=key)
         self.assertEqual(response.status_code, 401)
         self.assertIn("Bearer", response.headers.get("WWW-Authenticate", ""))
 
@@ -406,9 +398,7 @@ class TestMcpProtocol(common.HttpCase):
         key = self.env(user=self.mcp_user)["res.users.apikeys"]._generate(
             "mcp_not_rpc", "Non-RPC Scope Key", datetime.now() + timedelta(days=30)
         )
-        response = self._post_rpc(
-            {"jsonrpc": "2.0", "id": 13, "method": "ping"}, api_key=key
-        )
+        response = self._post_rpc({"jsonrpc": "2.0", "id": 13, "method": "ping"}, api_key=key)
         self.assertEqual(response.status_code, 401)
         self.assertIn("Bearer", response.headers.get("WWW-Authenticate", ""))
 
@@ -432,9 +422,7 @@ class TestMcpProtocol(common.HttpCase):
         self.assertEqual(statuses, [401] * attempts, msg=statuses)
         # ...but the throttle recorded no more than the cap (over-cap attempts
         # skipped the audit write). Without the throttle it would be untouched (0).
-        recorded = sum(
-            len(stamps) for stamps in ir_http._bearer_failure_limiter._buckets.values()
-        )
+        recorded = sum(len(stamps) for stamps in ir_http._bearer_failure_limiter._buckets.values())
         self.assertEqual(recorded, ir_http._BEARER_FAILURE_MAX)
 
     def test_error_audit_write_is_ip_throttled(self):
@@ -449,9 +437,7 @@ class TestMcpProtocol(common.HttpCase):
         # Disable the per-user request limiter so every call reaches tool
         # dispatch (its 429 would otherwise pre-empt the audit path we exercise);
         # the audit throttle is the failure mode under test.
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.enable_rate_limiting", "False"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.enable_rate_limiting", "False")
         mcp._audit_write_limiter.clear()
         attempts = mcp._AUDIT_WRITE_MAX + 5
         for _ in range(attempts):
@@ -469,9 +455,7 @@ class TestMcpProtocol(common.HttpCase):
         # ...but the throttle recorded no more than the cap: the over-cap calls
         # skipped the committed audit write. Without the throttle it would be
         # untouched (0).
-        recorded = sum(
-            len(stamps) for stamps in mcp._audit_write_limiter._buckets.values()
-        )
+        recorded = sum(len(stamps) for stamps in mcp._audit_write_limiter._buckets.values())
         self.assertEqual(recorded, mcp._AUDIT_WRITE_MAX)
 
     @mute_logger("odoo.addons.mcp_server.controllers.mcp")
@@ -528,9 +512,7 @@ class TestMcpProtocol(common.HttpCase):
     # ------------------------------------------------------------------
     def test_notifications_initialized_returns_202_no_body(self):
         """notifications/initialized is acknowledged with an empty HTTP 202."""
-        response = self._post_rpc(
-            {"jsonrpc": "2.0", "method": "notifications/initialized"}
-        )
+        response = self._post_rpc({"jsonrpc": "2.0", "method": "notifications/initialized"})
         self.assertEqual(response.status_code, 202)
         self.assertEqual(response.content, b"")
 
@@ -574,30 +556,22 @@ class TestMcpProtocol(common.HttpCase):
         """
         for bad_id in (None, True, 1.5, [1], {"a": 1}):
             with self.subTest(id=bad_id):
-                response = self._post_rpc(
-                    {"jsonrpc": "2.0", "id": bad_id, "method": "ping"}
-                )
+                response = self._post_rpc({"jsonrpc": "2.0", "id": bad_id, "method": "ping"})
                 self.assertEqual(response.status_code, 200)
                 body = response.json()
                 self.assertEqual(body["error"]["code"], -32600)
                 self.assertIsNone(body["id"])
         for good_id in ("req-1", 0):
             with self.subTest(id=good_id):
-                response = self._post_rpc(
-                    {"jsonrpc": "2.0", "id": good_id, "method": "ping"}
-                )
-                self.assertEqual(
-                    response.json(), {"jsonrpc": "2.0", "id": good_id, "result": {}}
-                )
+                response = self._post_rpc({"jsonrpc": "2.0", "id": good_id, "method": "ping"})
+                self.assertEqual(response.json(), {"jsonrpc": "2.0", "id": good_id, "result": {}})
 
     # ------------------------------------------------------------------
     # Error handling
     # ------------------------------------------------------------------
     def test_unknown_method_returns_method_not_found(self):
         """An unknown method yields JSON-RPC error -32601."""
-        response = self._post_rpc(
-            {"jsonrpc": "2.0", "id": 9, "method": "does/not/exist"}
-        )
+        response = self._post_rpc({"jsonrpc": "2.0", "id": 9, "method": "does/not/exist"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["error"]["code"], -32601)
 
@@ -646,8 +620,7 @@ class TestMcpProtocol(common.HttpCase):
 
         def boom(self, params):
             raise RuntimeError(
-                'leaky File "/opt/odoo/secret.py", line 7 '
-                "psycopg2.OperationalError at 0x7f00"
+                'leaky File "/opt/odoo/secret.py", line 7 psycopg2.OperationalError at 0x7f00'
             )
 
         with patch.dict(MCPController._METHOD_HANDLERS, {"ping": boom}):
@@ -743,7 +716,10 @@ class TestMcpProtocol(common.HttpCase):
         except Exception as exc:
             # Werkzeug / modern HTTP servers may terminate the connection
             # immediately when receiving a body exceeding MAX_CONTENT_LENGTH.
-            if "Connection aborted" not in str(exc) and "RemoteDisconnected" not in type(exc).__name__:
+            if (
+                "Connection aborted" not in str(exc)
+                and "RemoteDisconnected" not in type(exc).__name__
+            ):
                 raise
 
     def test_unsupported_protocol_version_header_returns_400(self):

@@ -107,11 +107,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         return record
 
     def _remove_mcp_group(self, user):
@@ -161,9 +157,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         match = re.search(r'name="csrf_token"\s+value="([^"]+)"', get_resp.text)
         self.assertIsNotNone(match, "consent page must embed a CSRF token")
         post_data = dict(params, csrf_token=match.group(1), decision="allow")
-        post_resp = self.url_open(
-            "/mcp/oauth/authorize", data=post_data, allow_redirects=False
-        )
+        post_resp = self.url_open("/mcp/oauth/authorize", data=post_data, allow_redirects=False)
         self.assertEqual(post_resp.status_code, 302, post_resp.text[:500])
         query = dict(parse_qsl(urlsplit(post_resp.headers["Location"]).query))
         self.assertIn("code", query, post_resp.headers.get("Location"))
@@ -453,9 +447,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         with patch.object(auth, "_log_auth_failure") as mocked:
             fault = self._xmlrpc_fault(self.user_ingroup.id, wrong)
         self.assertNotIn("MCP User group", fault.faultString)
-        mocked.assert_called_once_with(
-            "Invalid uid/password credential", api_key_used=False
-        )
+        mocked.assert_called_once_with("Invalid uid/password credential", api_key_used=False)
 
     def test_xmlrpc_wrong_password_gives_no_membership_oracle(self):
         """A wrong password faults the same for member, non-member and ghost.
@@ -522,9 +514,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
                 response = self._xmlrpc_common(
                     method, db, self.ingroup_login, self.password, *extra
                 )
-                self.assertEqual(
-                    xmlrpclib.loads(response.content)[0][0], self.user_ingroup.id
-                )
+                self.assertEqual(xmlrpclib.loads(response.content)[0][0], self.user_ingroup.id)
 
     def test_xmlrpc_calls_naming_another_database_refused(self):
         """A call naming another database than the request's is refused.
@@ -533,9 +523,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         run the call in the named one, so the proxy serves its own database only.
         """
         other = self.env.cr.dbname + "_other"
-        response = self._xmlrpc_common(
-            "authenticate", other, self.ingroup_login, self.password, {}
-        )
+        response = self._xmlrpc_common("authenticate", other, self.ingroup_login, self.password, {})
         with self.assertRaises(xmlrpclib.Fault) as cm:
             xmlrpclib.loads(response.content)
         self.assertEqual(cm.exception.faultCode, 400)
@@ -596,11 +584,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
             "MCP Sysadmin",
             f"mcp_sysadmin_{unique_id}",
             email=f"mcp_sysadmin_{unique_id}@example.com",
-            **{
-                users_groups_field(self.env): [
-                    (4, self.env.ref("base.group_system").id)
-                ]
-            },
+            **{users_groups_field(self.env): [(4, self.env.ref("base.group_system").id)]},
         )
         # Reached only by implication: group_system is explicit, the MCP group
         # is not -- it appears in all_group_ids, never assigned directly.
@@ -621,9 +605,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         """
         client_id = self._register_client()
         self.authenticate(self.nogroup_login, self.password)
-        params = self._authorize_params(
-            client_id, _code_challenge(secrets.token_urlsafe(48))
-        )
+        params = self._authorize_params(client_id, _code_challenge(secrets.token_urlsafe(48)))
         response = self.url_open("/mcp/oauth/authorize", params=params)
         self.assertEqual(response.status_code, 400, response.text[:500])
         self.assertIn("not authorized to use the MCP", response.text)
@@ -636,9 +618,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         """
         client_id = self._register_client()
         self.authenticate(self.nogroup_login, self.password)
-        params = self._authorize_params(
-            client_id, _code_challenge(secrets.token_urlsafe(48))
-        )
+        params = self._authorize_params(client_id, _code_challenge(secrets.token_urlsafe(48)))
         params["context"] = "x"
         response = self.url_open("/mcp/oauth/authorize", params=params)
         self.assertEqual(response.status_code, 400, response.text[:500])
@@ -648,9 +628,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         """A group member still reaches the consent screen (positive control)."""
         client_id = self._register_client()
         self.authenticate(self.ingroup_login, self.password)
-        params = self._authorize_params(
-            client_id, _code_challenge(secrets.token_urlsafe(48))
-        )
+        params = self._authorize_params(client_id, _code_challenge(secrets.token_urlsafe(48)))
         response = self.url_open("/mcp/oauth/authorize", params=params)
         self.assertEqual(response.status_code, 200, response.text[:500])
         self.assertIn("csrf_token", response.text)
@@ -665,9 +643,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         client_id = self._register_client()
         self.authenticate(self.ingroup_login, self.password)
         verifier = secrets.token_urlsafe(48)
-        code = self._approve_consent(
-            self._authorize_params(client_id, _code_challenge(verifier))
-        )
+        code = self._approve_consent(self._authorize_params(client_id, _code_challenge(verifier)))
         self._remove_mcp_group(self.user_ingroup)
 
         response = self._exchange_code(client_id, code, verifier)
@@ -683,9 +659,7 @@ class TestMcpAccessGroupGate(common.HttpCase):
         client_id = self._register_client()
         self.authenticate(self.ingroup_login, self.password)
         verifier = secrets.token_urlsafe(48)
-        code = self._approve_consent(
-            self._authorize_params(client_id, _code_challenge(verifier))
-        )
+        code = self._approve_consent(self._authorize_params(client_id, _code_challenge(verifier)))
         exchange = self._exchange_code(client_id, code, verifier)
         self.assertEqual(exchange.status_code, 200, exchange.text[:300])
         refresh_token = exchange.json()["refresh_token"]

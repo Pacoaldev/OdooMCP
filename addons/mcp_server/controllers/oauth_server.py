@@ -262,9 +262,7 @@ class _S256CodeChallenge(CodeChallenge):
         if authorization_code is not None:
             method = self.get_authorization_code_challenge_method(authorization_code)
             if method and method not in self.SUPPORTED_CODE_CHALLENGE_METHOD:
-                raise InvalidGrantError(
-                    description="Unsupported code_challenge_method."
-                )
+                raise InvalidGrantError(description="Unsupported code_challenge_method.")
         return super().validate_code_verifier(grant, result)
 
 
@@ -401,9 +399,7 @@ class _ClientRegistrationEndpoint(ClientRegistrationEndpoint):
         return {
             "grant_types_supported": SUPPORTED_GRANT_TYPES,
             "response_types_supported": SUPPORTED_RESPONSE_TYPES,
-            "token_endpoint_auth_methods_supported": (
-                SUPPORTED_TOKEN_ENDPOINT_AUTH_METHODS
-            ),
+            "token_endpoint_auth_methods_supported": (SUPPORTED_TOKEN_ENDPOINT_AUTH_METHODS),
         }
 
     def generate_client_info(self, oauth_request):
@@ -475,8 +471,7 @@ class _ClientRegistrationEndpoint(ClientRegistrationEndpoint):
         for uri in redirect_uris:
             if len(uri) > _MAX_REDIRECT_URI_LENGTH:
                 raise InvalidClientMetadataError(
-                    "A redirect_uri is too long (max %d characters)."
-                    % _MAX_REDIRECT_URI_LENGTH
+                    "A redirect_uri is too long (max %d characters)." % _MAX_REDIRECT_URI_LENGTH
                 )
             if not _is_allowed_redirect_uri(uri):
                 raise InvalidClientMetadataError(
@@ -485,8 +480,7 @@ class _ClientRegistrationEndpoint(ClientRegistrationEndpoint):
                 )
         if len(client_metadata.get("client_name") or "") > _MAX_CLIENT_STRING_LENGTH:
             raise InvalidClientMetadataError(
-                "client_name is too long (max %d characters)."
-                % _MAX_CLIENT_STRING_LENGTH
+                "client_name is too long (max %d characters)." % _MAX_CLIENT_STRING_LENGTH
             )
         if len(client_metadata.get("scope") or "") > _MAX_CLIENT_STRING_LENGTH:
             raise InvalidClientMetadataError(
@@ -602,9 +596,7 @@ def _build_authorization_server():
             expires_generator=ACCESS_TOKEN_EXPIRES_IN,
         ),
     )
-    server.register_client_auth_method(
-        "client_secret_basic", _authenticate_client_secret_basic
-    )
+    server.register_client_auth_method("client_secret_basic", _authenticate_client_secret_basic)
     server.register_client_auth_method("none", _authenticate_none)
     server.register_grant(_AuthorizationCodeGrant, [_S256CodeChallenge(required=True)])
     server.register_grant(_RefreshTokenGrant)
@@ -783,9 +775,7 @@ class OAuthMetadataController(http.Controller):
             "response_types_supported": SUPPORTED_RESPONSE_TYPES,
             "grant_types_supported": SUPPORTED_GRANT_TYPES,
             "code_challenge_methods_supported": ["S256"],
-            "token_endpoint_auth_methods_supported": (
-                SUPPORTED_TOKEN_ENDPOINT_AUTH_METHODS
-            ),
+            "token_endpoint_auth_methods_supported": (SUPPORTED_TOKEN_ENDPOINT_AUTH_METHODS),
             "scopes_supported": SUPPORTED_SCOPES,
         }
         return request.make_json_response(metadata)
@@ -914,9 +904,7 @@ def _add_issuer(response):
     """
     location = response.headers.get("Location")
     if location:
-        response.headers["Location"] = add_params_to_uri(
-            location, [("iss", _base_url())]
-        )
+        response.headers["Location"] = add_params_to_uri(location, [("iss", _base_url())])
     return response
 
 
@@ -978,8 +966,7 @@ def _render_consent(grant):
         # ``mcp:read``) AND the client registered for write. A read-only-registered
         # client is never offered write -- it could not be granted it anyway.
         "show_write_checkbox": (
-            not is_read_only_request(grant.request.scope)
-            and client_allows_write(client)
+            not is_read_only_request(grant.request.scope) and client_allows_write(client)
         ),
         # "Not you?" — log out and come back to this same authorize request so the
         # user can approve as a different Odoo account.
@@ -987,9 +974,7 @@ def _render_consent(grant):
         + quote(request.httprequest.full_path, safe=""),
         # Re-submit the validated request verbatim; the approve/deny POST is then
         # the same request, re-validated server-side before a code is issued.
-        "oauth_params": {
-            name: values.get(name) for name in _AUTHORIZE_PARAMS if values.get(name)
-        },
+        "oauth_params": {name: values.get(name) for name in _AUTHORIZE_PARAMS if values.get(name)},
         "csrf_token": request.csrf_token(),
     }
     response = request.render("mcp_server.oauth_consent", qcontext)
@@ -1110,9 +1095,7 @@ class OAuthFlowController(http.Controller):
             if granted == "mcp:write" and not client_allows_write(grant.client):
                 granted = "mcp:read"
             request._mcp_granted_scope = granted
-        response = server.create_authorization_response(
-            grant=grant, grant_user=grant_user
-        )
+        response = server.create_authorization_response(grant=grant, grant_user=grant_user)
         return _add_issuer(response)
 
     # auth='none', csrf=False: machine-to-machine token exchange. There is no
@@ -1145,9 +1128,7 @@ class OAuthFlowController(http.Controller):
         # re-counts the hit. Best-effort, self-penalizing, safe-direction -- see
         # mcp._enforce_rate_limit's RETRY DOUBLE-COUNT note.
         if _token_rate_limited(request.httprequest.remote_addr):
-            return _oauth_error_response(
-                "temporarily_unavailable", 429, "Too many token requests."
-            )
+            return _oauth_error_response("temporarily_unavailable", 429, "Too many token requests.")
         try:
             return get_authorization_server().create_token_response()
         except OperationalError:
@@ -1192,17 +1173,13 @@ class OAuthFlowController(http.Controller):
                 "temporarily_unavailable", 429, "Too many registration requests."
             )
         try:
-            return get_authorization_server().create_endpoint_response(
-                "client_registration"
-            )
+            return get_authorization_server().create_endpoint_response("client_registration")
         except (BadRequest, UnsupportedMediaType):
             # A malformed / non-JSON body makes Werkzeug's get_json() raise a
             # 400/415 while Authlib reads request.payload.data. That is a client
             # error, so return a 400 DCR error instead of letting it fall into
             # the generic server_error (500) path below.
-            return _oauth_error_response(
-                "invalid_client_metadata", 400, "Invalid request body."
-            )
+            return _oauth_error_response("invalid_client_metadata", 400, "Invalid request body.")
         except ValueError:
             # A malformed redirect_uri authority (bad IPv6 literal, non-numeric
             # or out-of-range port) makes Authlib's own URL validation raise a
@@ -1212,9 +1189,7 @@ class OAuthFlowController(http.Controller):
             # client value echoed back). Logged (unlike a clean rejection) so a
             # spike of Authlib-tripping registrations is still visible.
             _logger.warning("OAuth DCR rejected a redirect_uri Authlib could not parse")
-            return _oauth_error_response(
-                "invalid_client_metadata", 400, "Invalid redirect_uri."
-            )
+            return _oauth_error_response("invalid_client_metadata", 400, "Invalid redirect_uri.")
         except OperationalError:
             # Serialization failure / deadlock: re-raise so service.model.retrying
             # can retry rather than returning a spurious 500 the client can't retry.

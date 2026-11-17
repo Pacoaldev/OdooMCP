@@ -9,9 +9,7 @@ class McpModelSelectionWizard(models.TransientModel):
 
     @api.model
     def _get_model_domain(self):
-        enabled_model_ids = (
-            self.env["mcp.enabled.model"].search([]).mapped("model_id.id")
-        )
+        enabled_model_ids = self.env["mcp.enabled.model"].search([]).mapped("model_id.id")
         domain = [
             ("transient", "=", False),
             ("model", "not like", "ir.%"),
@@ -33,9 +31,7 @@ class McpModelSelectionWizard(models.TransientModel):
         help="Select models to enable for MCP access",
     )
     allow_read = fields.Boolean(default=True, help="Allow read operations through MCP")
-    allow_create = fields.Boolean(
-        default=False, help="Allow create operations through MCP"
-    )
+    allow_create = fields.Boolean(default=False, help="Allow create operations through MCP")
     allow_write = fields.Boolean(
         string="Allow Update", default=False, help="Allow update operations through MCP"
     )

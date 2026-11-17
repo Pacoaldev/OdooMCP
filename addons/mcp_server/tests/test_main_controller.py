@@ -71,9 +71,7 @@ class TestMcpMainController(common.HttpCase):
         # Ensure res.users is NOT MCP-enabled for testing
         users_model_id = self.env.ref("base.model_res_users").id
         existing_users_model = (
-            self.env["mcp.enabled.model"]
-            .sudo()
-            .search([("model_id", "=", users_model_id)])
+            self.env["mcp.enabled.model"].sudo().search([("model_id", "=", users_model_id)])
         )
         if existing_users_model:
             existing_users_model.sudo().unlink()
@@ -219,9 +217,7 @@ class TestMcpMainController(common.HttpCase):
     def test_get_model_access_nonexistent_model(self):
         """Test get model access for non-existent model"""
         headers = {"X-API-Key": self.api_key}
-        response = self.url_open(
-            "/mcp/models/nonexistent.model/access", headers=headers
-        )
+        response = self.url_open("/mcp/models/nonexistent.model/access", headers=headers)
         self.assertEqual(response.status_code, 404)
 
         data = json.loads(response.content.decode())

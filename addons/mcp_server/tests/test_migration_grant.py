@@ -73,9 +73,7 @@ class TestMigrationGrant(common.TransactionCase):
         )
 
     def _log(self, user, event_type):
-        self.env["mcp.log"].sudo().create(
-            {"event_type": event_type, "user_id": user.id}
-        )
+        self.env["mcp.log"].sudo().create({"event_type": event_type, "user_id": user.id})
 
     def test_migrate_grants_by_activity_and_skips_the_rest(self):
         """Each activity source grants; failures, portal, archived, idle do not."""
@@ -106,11 +104,7 @@ class TestMigrationGrant(common.TransactionCase):
 
         portal = self._user(
             "portal",
-            **{
-                users_groups_field(self.env): [
-                    (6, 0, [self.env.ref("base.group_portal").id])
-                ]
-            },
+            **{users_groups_field(self.env): [(6, 0, [self.env.ref("base.group_portal").id])]},
         )
         self._oauth_token(portal)
 

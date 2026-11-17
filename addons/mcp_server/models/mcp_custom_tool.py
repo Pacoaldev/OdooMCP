@@ -104,8 +104,7 @@ class McpCustomTool(models.Model):
             if tool.name in builtins:
                 raise ValidationError(
                     _(
-                        "'%(name)s' is the name of a builtin MCP tool; pick a "
-                        "different name.",
+                        "'%(name)s' is the name of a builtin MCP tool; pick a different name.",
                         name=tool.name,
                     )
                 )
@@ -116,9 +115,7 @@ class McpCustomTool(models.Model):
             try:
                 schema = json.loads(tool.input_schema or "")
             except (ValueError, TypeError) as err:
-                raise ValidationError(
-                    _("Input schema must be valid JSON: %s", err)
-                ) from err
+                raise ValidationError(_("Input schema must be valid JSON: %s", err)) from err
             if not isinstance(schema, dict):
                 raise ValidationError(
                     _(
@@ -143,10 +140,7 @@ class McpCustomTool(models.Model):
                 or not all(isinstance(item, str) for item in required)
             ):
                 raise ValidationError(
-                    _(
-                        "Input schema 'required' must be a list of property "
-                        "name strings."
-                    )
+                    _("Input schema 'required' must be a list of property name strings.")
                 )
 
     @api.constrains("is_readonly")
@@ -247,9 +241,7 @@ class McpCustomTool(models.Model):
         """
         self.ensure_one()
         if not self._user_can_run():
-            raise AccessError(
-                _("You are not allowed to run the '%(name)s' tool.", name=self.name)
-            )
+            raise AccessError(_("You are not allowed to run the '%(name)s' tool.", name=self.name))
         # Read the action REFERENCE once under sudo via _sudo_action (mirroring
         # _user_can_run); the state guard and execution below both reuse it.
         action_su = self._sudo_action()
@@ -260,10 +252,7 @@ class McpCustomTool(models.Model):
         # told the call succeeded. Fail loud instead.
         if action_su.state != "code":  # sudo: read action definition
             raise UserError(
-                _(
-                    "This custom tool's server action is not a Python Code "
-                    "action and cannot be run."
-                )
+                _("This custom tool's server action is not a Python Code action and cannot be run.")
             )
         shared = {"args": arguments or {}, "result": None}
         # with_env(self.env) re-binds the sudo-read action to the caller's non-su
@@ -285,14 +274,10 @@ class McpCustomTool(models.Model):
         try:
             parsed = json.loads(self.input_schema or "{}")
         except ValueError as err:
-            _logger.warning(
-                "Custom tool %s: malformed input_schema: %s", self.name, err
-            )
+            _logger.warning("Custom tool %s: malformed input_schema: %s", self.name, err)
             return None
         if not isinstance(parsed, dict):
-            _logger.warning(
-                "Custom tool %s: input_schema is not a JSON object", self.name
-            )
+            _logger.warning("Custom tool %s: input_schema is not a JSON object", self.name)
             return None
         return parsed
 

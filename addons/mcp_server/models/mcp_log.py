@@ -132,9 +132,7 @@ class MCPLog(models.Model):
         max_text_length = 10000
         for field in ["request_data", "response_data", "error_message", "user_agent"]:
             if log_data.get(field) and len(str(log_data[field])) > max_text_length:
-                log_data[field] = (
-                    str(log_data[field])[:max_text_length] + "... [truncated]"
-                )
+                log_data[field] = str(log_data[field])[:max_text_length] + "... [truncated]"
 
         # Cap the short identifier columns too. ``model_name``/``tool_name`` are
         # indexed and client-controlled (the native endpoint forwards the request's
@@ -146,9 +144,7 @@ class MCPLog(models.Model):
         max_char_length = 256
         for field in ["model_name", "tool_name", "operation"]:
             if log_data.get(field) and len(str(log_data[field])) > max_char_length:
-                log_data[field] = (
-                    str(log_data[field])[:max_char_length] + "... [truncated]"
-                )
+                log_data[field] = str(log_data[field])[:max_char_length] + "... [truncated]"
 
         try:
             # Savepoint so a DB-level failure (e.g. an FK/constraint violation at
@@ -292,8 +288,7 @@ class MCPLog(models.Model):
             user_id=user_id,
             endpoint=endpoint,
             ip_address=ip_address,
-            error_message=error_message
-            or f"Permission denied for {operation} on {model_name}",
+            error_message=error_message or f"Permission denied for {operation} on {model_name}",
             auth_method=auth_method,
             oauth_client_id=oauth_client_id,
             oauth_scope=oauth_scope,
@@ -380,9 +375,7 @@ class MCPLog(models.Model):
     def _compute_display_name(self):
         """Compute display name for tree views."""
         for record in self:
-            parts = [
-                dict(record._fields["event_type"].selection).get(record.event_type, "")
-            ]
+            parts = [dict(record._fields["event_type"].selection).get(record.event_type, "")]
             if record.model_name:
                 parts.append(record.model_name)
             if record.operation:

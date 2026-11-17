@@ -38,8 +38,7 @@ from .test_helpers import create_test_user, grant_mcp_access, users_groups_field
 from .test_oauth import _code_challenge
 
 _PNG_1X1_B64 = (
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4"
-    "nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
 )
 _PNG_1X1 = base64.b64decode(_PNG_1X1_B64)
 
@@ -139,19 +138,13 @@ class TestAttachmentToolsHttp(common.HttpCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         utils.clear_mcp_caches()
         return record
 
     def _disable_model(self, model_xmlid):
         model_id = self.env.ref(model_xmlid).id
-        self.env["mcp.enabled.model"].sudo().search(
-            [("model_id", "=", model_id)]
-        ).unlink()
+        self.env["mcp.enabled.model"].sudo().search([("model_id", "=", model_id)]).unlink()
         utils.clear_mcp_caches()
 
     # ------------------------------------------------------------------
@@ -170,14 +163,10 @@ class TestAttachmentToolsHttp(common.HttpCase):
         return payload["result"]
 
     def _call_tool(self, name, arguments=None, token=None):
-        return self._rpc(
-            "tools/call", {"name": name, "arguments": arguments or {}}, token=token
-        )
+        return self._rpc("tools/call", {"name": name, "arguments": arguments or {}}, token=token)
 
     def _tools(self, token=None):
-        return {
-            tool["name"]: tool for tool in self._rpc("tools/list", token=token)["tools"]
-        }
+        return {tool["name"]: tool for tool in self._rpc("tools/list", token=token)["tools"]}
 
     def _anonymous_get(self, url):
         """GET ``url`` with a cookie-less client (plus the test-cursor key)."""
@@ -207,20 +196,16 @@ class TestAttachmentToolsHttp(common.HttpCase):
             self.assertIs(tools[name]["annotations"]["readOnlyHint"], read_only, name)
             self.assertTrue(tools[name].get("title"), name)
         read_schema = tools["read_attachment"]["inputSchema"]
-        self.assertEqual(
-            set(read_schema["properties"]), {"uri", "attachment_id", "format"}
-        )
-        self.assertEqual(
-            read_schema["properties"]["format"]["enum"], ["auto", "link", "blob"]
-        )
+        self.assertEqual(set(read_schema["properties"]), {"uri", "attachment_id", "format"})
+        self.assertEqual(read_schema["properties"]["format"]["enum"], ["auto", "link", "blob"])
         self.assertEqual(
             set(tools["list_record_attachments"]["inputSchema"]["required"]),
             {"model", "record_id"},
         )
         # Live limit interpolation applies to the new paging tool too.
-        limit_desc = tools["list_record_attachments"]["inputSchema"]["properties"][
-            "limit"
-        ]["description"]
+        limit_desc = tools["list_record_attachments"]["inputSchema"]["properties"]["limit"][
+            "description"
+        ]
         self.assertNotIn("%(default)s", limit_desc)
         self.assertEqual(
             set(tools["upload_attachment"]["inputSchema"]["required"]),
@@ -251,9 +236,7 @@ class TestAttachmentToolsHttp(common.HttpCase):
             "get_record", {"model": "res.partner", "record_id": self.partner.id}
         )["structuredContent"]
         self.assertIn("Smart field selection", smart["metadata"]["note"])
-        self.assertEqual(
-            "binary_note" in smart, "image_1920" in smart["record"], msg=smart
-        )
+        self.assertEqual("binary_note" in smart, "image_1920" in smart["record"], msg=smart)
 
         search_result = self._call_tool(
             "search_records",
@@ -296,13 +279,9 @@ class TestAttachmentToolsHttp(common.HttpCase):
     # read_attachment over the wire (plan Task 5)
     # ------------------------------------------------------------------
     def test_read_attachment_auto_text(self):
-        result = self._call_tool(
-            "read_attachment", {"attachment_id": self.text_attachment.id}
-        )
+        result = self._call_tool("read_attachment", {"attachment_id": self.text_attachment.id})
         self.assertFalse(result["isError"], msg=result)
-        self.assertEqual(
-            result["content"], [{"type": "text", "text": "hello over http"}]
-        )
+        self.assertEqual(result["content"], [{"type": "text", "text": "hello over http"}])
         self.assertEqual(result["structuredContent"]["format_used"], "text")
         log = self._last_log("read_attachment")
         self.assertEqual(log.model_name, "ir.attachment")
@@ -401,9 +380,7 @@ class TestAttachmentToolsHttp(common.HttpCase):
         self.assertFalse(result["isError"], msg=result)
         structured = result["structuredContent"]
         self.env.invalidate_all()
-        attachment = (
-            self.env["ir.attachment"].sudo().browse(structured["attachment_id"])
-        )
+        attachment = self.env["ir.attachment"].sudo().browse(structured["attachment_id"])
         self.assertEqual(bytes(attachment.raw), b"memo body")
         self.assertEqual(attachment.res_id, self.partner.id)
         log = self._last_log("upload_attachment")
@@ -447,9 +424,7 @@ class TestAttachmentToolsHttp(common.HttpCase):
         match = re.search(r'name="csrf_token"\s+value="([^"]+)"', page.text)
         self.assertIsNotNone(match)
         post_data = {**params, "csrf_token": match.group(1), "decision": "allow"}
-        redirect = self.url_open(
-            "/mcp/oauth/authorize", data=post_data, allow_redirects=False
-        )
+        redirect = self.url_open("/mcp/oauth/authorize", data=post_data, allow_redirects=False)
         self.assertEqual(redirect.status_code, 302, redirect.text[:500])
         code = dict(parse_qsl(urlsplit(redirect.headers["Location"]).query))["code"]
         token_resp = self.url_open(

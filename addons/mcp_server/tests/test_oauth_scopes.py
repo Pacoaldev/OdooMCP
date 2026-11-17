@@ -119,11 +119,7 @@ class TestOAuthScopes(common.HttpCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         return record
 
     def _register_client(self, redirect_uris=None, scope="mcp mcp:read mcp:write"):
@@ -181,9 +177,7 @@ class TestOAuthScopes(common.HttpCase):
         if grant_write:
             # Simulate the (default-checked) consent checkbox being submitted.
             post_data["grant_write"] = "on"
-        post_resp = self.url_open(
-            "/mcp/oauth/authorize", data=post_data, allow_redirects=False
-        )
+        post_resp = self.url_open("/mcp/oauth/authorize", data=post_data, allow_redirects=False)
         self.assertEqual(post_resp.status_code, 302, post_resp.text[:500])
         query = dict(parse_qsl(urlsplit(post_resp.headers["Location"]).query))
         self.assertIn("code", query, post_resp.headers.get("Location"))
@@ -251,9 +245,7 @@ class TestOAuthScopes(common.HttpCase):
 
     def _call_tool(self, token, name, arguments=None):
         """Invoke ``tools/call`` over ``token`` and return the tool-result dict."""
-        response = self._rpc(
-            token, "tools/call", {"name": name, "arguments": arguments or {}}
-        )
+        response = self._rpc(token, "tools/call", {"name": name, "arguments": arguments or {}})
         self.assertEqual(response.status_code, 200, response.text[:500])
         payload = response.json()
         self.assertNotIn("error", payload, msg=payload.get("error"))
@@ -346,9 +338,7 @@ class TestOAuthScopes(common.HttpCase):
         E500 -- indistinguishable from an internal failure. It must instead write an
         ``mcp.log`` row with ``event_type='permission_denied'`` for the denied tool.
         """
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.enable_logging", "True"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.enable_logging", "True")
         access_token = self._run_flow(grant_write=False)["access_token"]
 
         denied = self._call_tool(
@@ -372,9 +362,7 @@ class TestOAuthScopes(common.HttpCase):
                 ]
             )
         )
-        self.assertTrue(
-            rows, "a read-only-scope write denial must audit a permission_denied row"
-        )
+        self.assertTrue(rows, "a read-only-scope write denial must audit a permission_denied row")
         # The same denial must NOT also surface as a generic E500 error row.
         e500 = (
             self.env["mcp.log"]
@@ -388,9 +376,7 @@ class TestOAuthScopes(common.HttpCase):
                 ]
             )
         )
-        self.assertFalse(
-            e500, "the denial must not be logged as a generic E500 error row"
-        )
+        self.assertFalse(e500, "the denial must not be logged as a generic E500 error row")
 
     # ------------------------------------------------------------------
     # grant_write checked -> mcp:write (write allowed)
@@ -420,9 +406,7 @@ class TestOAuthScopes(common.HttpCase):
     def test_client_requesting_read_scope_has_no_write_checkbox(self):
         """A client that asks for exactly mcp:read gets a read-only consent + token."""
         verifier = secrets.token_urlsafe(48)
-        params = self._authorize_params(
-            challenge=_code_challenge(verifier), scope="mcp:read"
-        )
+        params = self._authorize_params(challenge=_code_challenge(verifier), scope="mcp:read")
 
         consent = self.url_open("/mcp/oauth/authorize", params=params)
         self.assertEqual(consent.status_code, 200, consent.text[:500])
@@ -569,9 +553,7 @@ class TestOAuthScopes(common.HttpCase):
         self.client_id = self._register_client(scope="mcp:read")["client_id"]
 
         verifier = secrets.token_urlsafe(48)
-        params = self._authorize_params(
-            challenge=_code_challenge(verifier), scope="mcp"
-        )
+        params = self._authorize_params(challenge=_code_challenge(verifier), scope="mcp")
 
         # The consent page must not offer write for a read-only-registered client.
         consent = self.url_open("/mcp/oauth/authorize", params=params)
@@ -630,18 +612,14 @@ class TestOAuthScopes(common.HttpCase):
 
         # An out-of-set scope: rejected with the standalone authorize-error page
         # (HTTP 400, never redirected back to the client), not the consent screen.
-        bogus = self._authorize_params(
-            challenge=_code_challenge(verifier), scope="bogus"
-        )
+        bogus = self._authorize_params(challenge=_code_challenge(verifier), scope="bogus")
         resp = self.url_open("/mcp/oauth/authorize", params=bogus)
         self.assertEqual(resp.status_code, 400, resp.text[:500])
         self.assertIn("Authorization request rejected", resp.text)
         self.assertNotIn('name="csrf_token"', resp.text)
 
         # A supported scope still renders the consent form (flow intact).
-        ok = self._authorize_params(
-            challenge=_code_challenge(verifier), scope="mcp:read"
-        )
+        ok = self._authorize_params(challenge=_code_challenge(verifier), scope="mcp:read")
         consent = self.url_open("/mcp/oauth/authorize", params=ok)
         self.assertEqual(consent.status_code, 200, consent.text[:500])
         self.assertIn('name="csrf_token"', consent.text)

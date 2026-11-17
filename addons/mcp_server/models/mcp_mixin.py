@@ -120,9 +120,7 @@ def binary_field_base64(record, field_name):
     return value or ""
 
 
-def mcp_tool(
-    name, description, input_schema, operation=None, title=None, **annotations
-):
+def mcp_tool(name, description, input_schema, operation=None, title=None, **annotations):
     """Mark a method as an MCP tool by attaching its metadata.
 
     The decorator does not wrap the method -- it only stamps a ``_mcp_tool``
@@ -241,8 +239,7 @@ class McpMixin(models.AbstractModel):
         if not utils.check_model_operation_allowed(self.env, model, operation):
             raise AccessError(
                 _(
-                    "Operation '%(operation)s' is not allowed on model "
-                    "'%(model)s' via MCP.",
+                    "Operation '%(operation)s' is not allowed on model '%(model)s' via MCP.",
                     operation=operation,
                     model=model,
                 )
@@ -260,9 +257,7 @@ class McpMixin(models.AbstractModel):
         :raises AccessError: when one of those operations is not allowed via MCP.
         """
         try:
-            denied = utils.denied_write_operation(
-                self.env, model, records, values_list, creating
-            )
+            denied = utils.denied_write_operation(self.env, model, records, values_list, creating)
         except utils.UnreadableWriteValues as e:
             raise UserError(str(e)) from None
         if denied:
@@ -467,9 +462,7 @@ class McpMixin(models.AbstractModel):
         """
         if utils.check_model_operation_allowed(self.env, "ir.attachment", "read"):
             return True
-        return bool(res_model) and utils.check_model_operation_allowed(
-            self.env, res_model, "read"
-        )
+        return bool(res_model) and utils.check_model_operation_allowed(self.env, res_model, "read")
 
     def _check_attachment_allowed(self, attachment):
         """Enforce the MCP allow-list for an attachment read.

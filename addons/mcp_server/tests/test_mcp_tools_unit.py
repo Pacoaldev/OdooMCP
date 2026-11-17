@@ -51,9 +51,7 @@ class TestSmartFields(common.TransactionCase):
             "secret_key",
             "stripe_secret_key",
         ):
-            self.assertEqual(
-                smart_fields.score_field_importance(name, {"type": "char"}), 0, name
-            )
+            self.assertEqual(smart_fields.score_field_importance(name, {"type": "char"}), 0, name)
             self.assertTrue(smart_fields.is_sensitive_field_name(name), name)
 
     def test_benign_lookalike_fields_not_sensitive(self):
@@ -142,9 +140,7 @@ class TestSmartFields(common.TransactionCase):
         if enabled:
             enabled.write({"allow_read": True, "active": True})
         else:
-            self.env["mcp.enabled.model"].create(
-                {"model_id": partner_model.id, "allow_read": True}
-            )
+            self.env["mcp.enabled.model"].create({"model_id": partner_model.id, "allow_read": True})
         partner = self.env["res.partner"].create(
             {"name": "Sensitive Co", "comment": "confidential"}
         )
@@ -154,11 +150,12 @@ class TestSmartFields(common.TransactionCase):
         # the HTTP ``request`` -- unbound in a TransactionCase. Patch it True so
         # the gate resolves via ``env`` (the enabled-model row set up above); the
         # per-model allow_read flag is still enforced.
-        with patch(
-            "odoo.addons.mcp_server.controllers.utils.is_mcp_enabled",
-            return_value=True,
-        ), patch.object(
-            mcp_tools_read, "is_sensitive_field_name", lambda name: name == "comment"
+        with (
+            patch(
+                "odoo.addons.mcp_server.controllers.utils.is_mcp_enabled",
+                return_value=True,
+            ),
+            patch.object(mcp_tools_read, "is_sensitive_field_name", lambda name: name == "comment"),
         ):
             explicit = mixin.get_record("res.partner", partner.id, ["name", "comment"])
             bulk = mixin.get_record("res.partner", partner.id, ["__all__"])
@@ -183,9 +180,7 @@ class TestRecordFormatter(common.TransactionCase):
 
     def test_float_precision_from_digits(self):
         self.assertEqual(
-            self.fmt._format_field_value(
-                "x", 1234.5, {"type": "float", "digits": (16, 3)}
-            ),
+            self.fmt._format_field_value("x", 1234.5, {"type": "float", "digits": (16, 3)}),
             "1,234.500",
         )
 
@@ -197,9 +192,7 @@ class TestRecordFormatter(common.TransactionCase):
 
     def test_datetime_iso8601_utc_offset(self):
         self.assertEqual(
-            self.fmt._format_field_value(
-                "x", "2024-01-15 13:45:30", {"type": "datetime"}
-            ),
+            self.fmt._format_field_value("x", "2024-01-15 13:45:30", {"type": "datetime"}),
             "2024-01-15T13:45:30+00:00",
         )
 
@@ -208,29 +201,19 @@ class TestRecordFormatter(common.TransactionCase):
             "type": "selection",
             "selection": [("draft", "Draft"), ("done", "Done")],
         }
-        self.assertEqual(
-            self.fmt._format_field_value("state", "draft", meta), "Draft (draft)"
-        )
+        self.assertEqual(self.fmt._format_field_value("state", "draft", meta), "Draft (draft)")
 
     def test_boolean_yes_no(self):
-        self.assertEqual(
-            self.fmt._format_field_value("b", True, {"type": "boolean"}), "Yes"
-        )
-        self.assertEqual(
-            self.fmt._format_field_value("b", False, {"type": "boolean"}), "No"
-        )
+        self.assertEqual(self.fmt._format_field_value("b", True, {"type": "boolean"}), "Yes")
+        self.assertEqual(self.fmt._format_field_value("b", False, {"type": "boolean"}), "No")
 
     def test_empty_char_reads_not_set(self):
         """An empty char field reads 'Not set', not 'No' (driven by type)."""
-        self.assertEqual(
-            self.fmt._format_field_value("ref", False, {"type": "char"}), "Not set"
-        )
+        self.assertEqual(self.fmt._format_field_value("ref", False, {"type": "char"}), "Not set")
 
     def test_long_value_truncated_with_marker(self):
         """The marker names the get_record call that returns the whole value."""
-        rendered = self.fmt._format_field_value(
-            "note", "a" * 2500, {"type": "text"}, record_id=42
-        )
+        rendered = self.fmt._format_field_value("note", "a" * 2500, {"type": "text"}, record_id=42)
         self.assertTrue(rendered.startswith("a" * 2000 + "... [truncated, 2500"))
         self.assertIn(
             "for the full value use the get_record tool with model='res.partner', "
@@ -244,15 +227,11 @@ class TestRecordFormatter(common.TransactionCase):
         fmt = RecordFormatter("res.partner", max_field_length=500)
         rendered = fmt._format_field_value("note", "b" * 501, {"type": "text"}, 7)
         self.assertTrue(rendered.startswith("b" * 500 + "... [truncated, 501"))
-        self.assertEqual(
-            fmt._format_field_value("note", "b" * 500, {"type": "text"}, 7), "b" * 500
-        )
+        self.assertEqual(fmt._format_field_value("note", "b" * 500, {"type": "text"}, 7), "b" * 500)
 
     def test_ceiling_marker_without_hint(self):
         """full_value_hint=False names the per-field limit, not a get_record call."""
-        fmt = RecordFormatter(
-            "res.partner", max_field_length=100_000, full_value_hint=False
-        )
+        fmt = RecordFormatter("res.partner", max_field_length=100_000, full_value_hint=False)
         rendered = fmt._format_field_value("note", "c" * 100_001, {"type": "text"}, 7)
         self.assertIn(
             "[truncated, 100001 chars total; 100,000 characters is the text limit "
@@ -398,9 +377,7 @@ class TestDatasetFormatter(common.TransactionCase):
             for i in (1, 2, 3)
         ]
         meta = {"f1": {"type": "text"}, "f2": {"type": "text"}}
-        text = fmt.format_search_results(
-            rows, fields=["f1", "f2"], fields_metadata=meta
-        )
+        text = fmt.format_search_results(rows, fields=["f1", "f2"], fields_metadata=meta)
         # Row 3's f1 takes the page past 200k; only empty f2 values follow.
         self.assertEqual(text.count("f1: "), 3)
         self.assertNotIn("from record [", text)
@@ -436,9 +413,7 @@ class TestTextFieldLength(common.TransactionCase):
         if enabled:
             enabled.write({"allow_read": True, "active": True})
         else:
-            self.env["mcp.enabled.model"].create(
-                {"model_id": partner_model.id, "allow_read": True}
-            )
+            self.env["mcp.enabled.model"].create({"model_id": partner_model.id, "allow_read": True})
         self.params = self.env["ir.config_parameter"].sudo()
         self.params.set_str("mcp_server.max_field_length", "")
         self.mixin = self.env["mcp.mixin"]
@@ -460,9 +435,7 @@ class TestTextFieldLength(common.TransactionCase):
         return partner, str(partner.comment)
 
     def _search(self, partner):
-        return self.mixin.search_records(
-            "res.partner", [["id", "=", partner.id]], ["comment"]
-        )
+        return self.mixin.search_records("res.partner", [["id", "=", partner.id]], ["comment"])
 
     def test_max_field_length_fallback_and_clamp(self):
         """Unset, malformed and non-positive values fall back; large ones clamp."""
@@ -538,8 +511,7 @@ class TestTextFieldLength(common.TransactionCase):
         result = self.mixin.get_record("res.partner", partner.id, ["comment"])
         text = result["content"][0]["text"]
         self.assertIn(
-            f"comment: {stored[:100_000]}... [truncated, {len(stored)} chars total; "
-            f"{self.CEILING}",
+            f"comment: {stored[:100_000]}... [truncated, {len(stored)} chars total; {self.CEILING}",
             text,
         )
         self.assertNotIn(self.HINT, text)
@@ -554,8 +526,7 @@ class TestTextFieldLength(common.TransactionCase):
         )
         description = self.mixin._get_mcp_tools()["get_record"]["description"]
         self.assertIn(
-            "Name the field in 'fields' (not [\"__all__\"]) to get up to 100,000 "
-            "characters of it.",
+            "Name the field in 'fields' (not [\"__all__\"]) to get up to 100,000 characters of it.",
             description,
         )
 
@@ -627,6 +598,4 @@ class TestValidateMethodCallGuard(common.TransactionCase):
     def test_run_method_name_blocked_on_any_model(self):
         """'run' is refused even on a non-action model (method-name backstop)."""
         with self.assertRaises(AccessError):
-            self.mixin._validate_method_call(
-                "res.partner", self.env["res.partner"], "run"
-            )
+            self.mixin._validate_method_call("res.partner", self.env["res.partner"], "run")

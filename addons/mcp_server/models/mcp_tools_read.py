@@ -217,9 +217,7 @@ class McpToolsRead(models.AbstractModel):
         A malformed / non-positive value falls back to the default; a larger
         one is clamped to ``MAX_INLINE_TEXT_CHARS``, the ceiling for one field.
         """
-        length = self._mcp_int_config(
-            "mcp_server.max_field_length", DEFAULT_MAX_FIELD_LENGTH
-        )
+        length = self._mcp_int_config("mcp_server.max_field_length", DEFAULT_MAX_FIELD_LENGTH)
         if length <= 0:
             length = DEFAULT_MAX_FIELD_LENGTH
         return min(length, MAX_INLINE_TEXT_CHARS)
@@ -379,19 +377,13 @@ class McpToolsRead(models.AbstractModel):
             if (meta or {}).get("type") in _BINARY_FIELD_TYPES
         }
 
-    def _search_read_bulk(
-        self, model_rs, domain, names, *, offset, limit, order, skip_unreadable
-    ):
+    def _search_read_bulk(self, model_rs, domain, names, *, offset, limit, order, skip_unreadable):
         """``search_read`` that can leave out the fields the caller cannot read.
 
         Returns ``(rows, skipped)``. Only bulk selections skip fields; an
         explicit field list keeps failing with the access error.
         """
-        known = (
-            self._unreadable_fields(model_rs._name, tuple(names))
-            if skip_unreadable
-            else ()
-        )
+        known = self._unreadable_fields(model_rs._name, tuple(names)) if skip_unreadable else ()
         try:
             rows = model_rs.search_read(
                 domain,
@@ -408,15 +400,11 @@ class McpToolsRead(models.AbstractModel):
             readable, skipped = self._drop_unreadable_fields(probe, names)
             if not readable:
                 raise
-        rows = model_rs.search_read(
-            domain, readable, offset=offset, limit=limit, order=order
-        )
+        rows = model_rs.search_read(domain, readable, offset=offset, limit=limit, order=order)
         return rows, skipped
 
     @api.model
-    @ormcache(
-        "self.env.uid", "self.env.su", "tuple(self.env.companies.ids)", "model", "names"
-    )
+    @ormcache("self.env.uid", "self.env.su", "tuple(self.env.companies.ids)", "model", "names")
     def _unreadable_fields(self, model, names):
         """Probe one record of ``model`` for the unreadable fields of ``names``.
 
@@ -426,11 +414,7 @@ class McpToolsRead(models.AbstractModel):
         records yields no field, and a read that still fails falls back to the
         uncached probe.
         """
-        probe = (
-            self.env[model]
-            .with_context(active_test=False, bin_size=True)
-            .search([], limit=1)
-        )
+        probe = self.env[model].with_context(active_test=False, bin_size=True).search([], limit=1)
         if not probe:
             return ()
         try:
@@ -493,9 +477,7 @@ class McpToolsRead(models.AbstractModel):
             lines.append(_("No models are currently enabled for MCP access."))
         for entry in enriched:
             ops = entry["operations"] or {}
-            allowed = ", ".join(
-                op for op in ("read", "create", "write", "unlink") if ops.get(op)
-            )
+            allowed = ", ".join(op for op in ("read", "create", "write", "unlink") if ops.get(op))
             ops_label = allowed or _("no operations")
             lines.append(f"- {entry['name']} ({entry['model']}) [{ops_label}]")
 
@@ -583,9 +565,7 @@ class McpToolsRead(models.AbstractModel):
         # _strip_sensitive_fields.
         if selection_method != "explicit":
             self._strip_sensitive_fields(data)
-        render_metadata = self._replace_binaries(
-            model, record_rs.id, data, fields_metadata
-        )
+        render_metadata = self._replace_binaries(model, record_rs.id, data, fields_metadata)
 
         max_related_items = self._mcp_int_config(
             "mcp_server.max_related_items", DEFAULT_MAX_RELATED_ITEMS
@@ -682,8 +662,7 @@ class McpToolsRead(models.AbstractModel):
             except (AccessError, MissingError):
                 continue
             summaries[name] = [
-                (rec["id"], rec.get("display_name") or f"id {rec['id']}")
-                for rec in related
+                (rec["id"], rec.get("display_name") or f"id {rec['id']}") for rec in related
             ]
         return summaries
 
@@ -785,9 +764,7 @@ class McpToolsRead(models.AbstractModel):
         # scoring needs it to demote computed fields; stripped again below.
         internal_attributes = set(selected_attributes) | {"store"}
         # Runs as the calling user (no sudo) -> field-level group ACLs apply.
-        fields_metadata = model_rs.fields_get(
-            explicit_names, attributes=list(internal_attributes)
-        )
+        fields_metadata = model_rs.fields_get(explicit_names, attributes=list(internal_attributes))
 
         omitted = 0
         if not explicit_names and not show_all:
@@ -795,9 +772,7 @@ class McpToolsRead(models.AbstractModel):
             omitted = len(fields_metadata) - len(keep)
             if omitted:
                 fields_metadata = {
-                    fname: meta
-                    for fname, meta in fields_metadata.items()
-                    if fname in keep
+                    fname: meta for fname, meta in fields_metadata.items() if fname in keep
                 }
             # Cap giant selection lists (res.partner's tz alone has ~500
             # options) in the curated view; naming the field or passing
@@ -811,15 +786,11 @@ class McpToolsRead(models.AbstractModel):
             for meta in fields_metadata.values():
                 meta.pop("store", None)
 
-        fields = [
-            {"name": fname, **meta} for fname, meta in sorted(fields_metadata.items())
-        ]
+        fields = [{"name": fname, **meta} for fname, meta in sorted(fields_metadata.items())]
         structured = {"model": model, "fields": fields, "total": len(fields)}
         if omitted:
             structured["omitted"] = omitted
-        return _tool_result(
-            self._format_fields_text(model, fields, omitted=omitted), structured
-        )
+        return _tool_result(self._format_fields_text(model, fields, omitted=omitted), structured)
 
     @staticmethod
     def _format_fields_text(model, fields, omitted=0):
@@ -909,8 +880,7 @@ class McpToolsRead(models.AbstractModel):
                     "type": ["integer", "null"],
                     # Live default/max filled in at tools/list serve time.
                     "description": (
-                        "Max records to return. Defaults to %(default)s, capped "
-                        "at %(max)s."
+                        "Max records to return. Defaults to %(default)s, capped at %(max)s."
                     ),
                 },
                 "offset": {
@@ -933,9 +903,7 @@ class McpToolsRead(models.AbstractModel):
         openWorldHint=True,
     )
     @api.model
-    def search_records(
-        self, model, domain=None, fields=None, limit=None, offset=0, order=None
-    ):
+    def search_records(self, model, domain=None, fields=None, limit=None, offset=0, order=None):
         """Search records and format the page for LLM consumption."""
         model_rs = self._resolve_model(model)
         self._check_op(model, "read")
@@ -1125,8 +1093,7 @@ class McpToolsRead(models.AbstractModel):
                     "type": ["integer", "null"],
                     # Live default/max filled in at tools/list serve time.
                     "description": (
-                        "Max number of groups. Defaults to %(default)s, capped "
-                        "at %(max)s."
+                        "Max number of groups. Defaults to %(default)s, capped at %(max)s."
                     ),
                 },
                 "offset": {
@@ -1160,9 +1127,7 @@ class McpToolsRead(models.AbstractModel):
         self._check_op(model, "read")
 
         if not groupby:
-            raise UserError(
-                _("groupby must not be empty (use search_records for a flat list).")
-            )
+            raise UserError(_("groupby must not be empty (use search_records for a flat list)."))
         if isinstance(groupby, str):
             groupby = [groupby]
 
@@ -1288,8 +1253,7 @@ class McpToolsRead(models.AbstractModel):
                 "uri": {
                     "type": ["string", "null"],
                     "description": (
-                        "odoo://attachment/{id} or "
-                        "odoo://record/{model}/{id}/{field} URI."
+                        "odoo://attachment/{id} or odoo://record/{model}/{id}/{field} URI."
                     ),
                 },
                 "attachment_id": {
@@ -1326,9 +1290,7 @@ class McpToolsRead(models.AbstractModel):
         if isinstance(fmt, str):
             fmt = fmt.strip().lower()
         if not isinstance(fmt, str) or fmt not in _ATTACHMENT_FORMATS:
-            raise UserError(
-                _("Invalid format '%s'; expected 'auto', 'link' or 'blob'.", fmt)
-            )
+            raise UserError(_("Invalid format '%s'; expected 'auto', 'link' or 'blob'.", fmt))
         target = self._resolve_read_attachment_target(uri, attachment_id)
 
         if target["type"] == "url":
@@ -1416,9 +1378,7 @@ class McpToolsRead(models.AbstractModel):
         if notice:
             lines.append(notice)
         lines.append(_("Attachment: %s", self._attachment_headline(target)))
-        lines.append(
-            _("Download URL: %s", link["download_url"] or link["download_path"])
-        )
+        lines.append(_("Download URL: %s", link["download_url"] or link["download_path"]))
         lines.append(
             _(
                 "The link is valid until %s (UTC) and grants download access to "
@@ -1426,9 +1386,7 @@ class McpToolsRead(models.AbstractModel):
                 link["expires_at"],
             )
         )
-        return _tool_result(
-            "\n".join(lines), self._attachment_structured(target, "link", **link)
-        )
+        return _tool_result("\n".join(lines), self._attachment_structured(target, "link", **link))
 
     @staticmethod
     def _check_blob_cap(size):
@@ -1551,9 +1509,7 @@ class McpToolsRead(models.AbstractModel):
         A malformed / non-positive value falls back to the default; an
         excessive one is clamped to ``MAX_LINK_TTL_HOURS`` (42 days).
         """
-        hours = self._mcp_int_config(
-            "mcp_server.link_ttl_hours", DEFAULT_LINK_TTL_HOURS
-        )
+        hours = self._mcp_int_config("mcp_server.link_ttl_hours", DEFAULT_LINK_TTL_HOURS)
         if hours <= 0:
             hours = DEFAULT_LINK_TTL_HOURS
         return min(hours, MAX_LINK_TTL_HOURS) * 3600
@@ -1624,8 +1580,7 @@ class McpToolsRead(models.AbstractModel):
                     "type": ["integer", "null"],
                     # Live default/max filled in at tools/list serve time.
                     "description": (
-                        "Max attachments to return. Defaults to %(default)s, "
-                        "capped at %(max)s."
+                        "Max attachments to return. Defaults to %(default)s, capped at %(max)s."
                     ),
                 },
                 "offset": {
@@ -1727,9 +1682,7 @@ class McpToolsRead(models.AbstractModel):
                 details.append(_("url"))
             elif entry["file_size"] is not None:
                 details.append(_("%s bytes", entry["file_size"]))
-            lines.append(
-                f"[{idx}] {entry['name']} ({', '.join(details)}) -> {entry['uri']}"
-            )
+            lines.append(f"[{idx}] {entry['name']} ({', '.join(details)}) -> {entry['uri']}")
         if offset + len(entries) < total:
             lines.append("")
             lines.append(
@@ -1822,9 +1775,7 @@ class McpToolsRead(models.AbstractModel):
         )
         text_lines = ["=" * 60, _("Resource templates"), "=" * 60]
         for template in templates:
-            text_lines.append(
-                f"- {template['uri_template']}: {template['description']}"
-            )
+            text_lines.append(f"- {template['uri_template']}: {template['description']}")
         text_lines.append("")
         text_lines.append(note)
 

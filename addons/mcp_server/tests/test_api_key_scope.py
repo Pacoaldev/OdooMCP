@@ -40,6 +40,7 @@ except ImportError:  # pragma: no cover - depends on the installed series
         token = request_var.set(request)
         return lambda: request_var.reset(token)
 
+
 from odoo.tests import common, tagged
 
 from ..controllers import auth, rate_limiting, utils
@@ -96,9 +97,7 @@ class TestApiKeyScope(common.HttpCase):
 
     def _get_rest(self, path, api_key):
         """GET a legacy REST ``path`` with an ``X-API-Key`` header."""
-        return self.url_open(
-            path, headers={"X-API-Key": api_key, "Accept": "application/json"}
-        )
+        return self.url_open(path, headers={"X-API-Key": api_key, "Accept": "application/json"})
 
     def test_mcp_user_reads_only_own_api_keys(self):
         """MCP membership grants no read access to other users' key metadata."""
@@ -135,16 +134,12 @@ class TestApiKeyScope(common.HttpCase):
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertNotIn("error", body)
-        self.assertEqual(
-            body["result"]["protocolVersion"], PREFERRED_PROTOCOL_VERSION
-        )
+        self.assertEqual(body["result"]["protocolVersion"], PREFERRED_PROTOCOL_VERSION)
 
     def test_null_scope_key_still_authenticates_on_rpc(self):
         """Regression: a NULL-scope key keeps authenticating on ``/mcp``."""
         if "scope" in self.env["res.users.apikeys.description"]._fields:
-            self.skipTest(
-                "Odoo 20+ matches API keys by exact scope; NULL keys match no probe"
-            )
+            self.skipTest("Odoo 20+ matches API keys by exact scope; NULL keys match no probe")
         response = self._post_rpc(
             {"jsonrpc": "2.0", "id": 2, "method": "ping"},
             api_key=self.null_key,
@@ -211,18 +206,14 @@ class TestApiKeyScope(common.HttpCase):
         """
         mock_request = MagicMock()
         mock_request.env = self.env
-        with patch(
-            "odoo.addons.mcp_server.controllers.auth.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.auth.request", mock_request):
             self.assertFalse(
                 auth.get_user_from_api_key(
                     self.mcp_key, allowed_scopes=("rpc",), log_failure=False
                 ),
                 "an mcp key must not resolve under the default rpc-only scope",
             )
-            user = auth.get_user_from_api_key(
-                self.mcp_key, allowed_scopes=("mcp", "rpc")
-            )
+            user = auth.get_user_from_api_key(self.mcp_key, allowed_scopes=("mcp", "rpc"))
             self.assertEqual(user.id, self.mcp_user.id)
 
 
@@ -235,18 +226,16 @@ class TestApiKeyScopeGenerate(common.TransactionCase):
         return (
             self.env["res.users.apikeys"]
             .sudo()
-            .search(
-                [("user_id", "=", self.env.user.id)], order="id desc", limit=1
-            )
+            .search([("user_id", "=", self.env.user.id)], order="id desc", limit=1)
             .scope
         )
 
     def test_generate_with_context_flag_stores_mcp_scope(self):
         """``with_context(mcp_api_key_scope="mcp")._generate(None, ...)`` stores ``mcp``."""
         expiration = datetime.now() + timedelta(days=30)
-        self.env["res.users.apikeys"].with_context(
-            mcp_api_key_scope="mcp"
-        )._generate(None, "ctx mcp key", expiration)
+        self.env["res.users.apikeys"].with_context(mcp_api_key_scope="mcp")._generate(
+            None, "ctx mcp key", expiration
+        )
         self.assertEqual(self._latest_key_scope(), "mcp")
 
     def test_generate_without_context_flag_stores_null_scope(self):
@@ -258,9 +247,9 @@ class TestApiKeyScopeGenerate(common.TransactionCase):
     def test_generate_explicit_scope_arg_wins_over_context_flag(self):
         """An explicit ``scope`` arg overrides the ``mcp_api_key_scope`` context flag."""
         expiration = datetime.now() + timedelta(days=30)
-        self.env["res.users.apikeys"].with_context(
-            mcp_api_key_scope="mcp"
-        )._generate("rpc", "explicit-wins", expiration)
+        self.env["res.users.apikeys"].with_context(mcp_api_key_scope="mcp")._generate(
+            "rpc", "explicit-wins", expiration
+        )
         self.assertEqual(self._latest_key_scope(), "rpc")
 
 
@@ -310,9 +299,7 @@ class TestApiKeyScopeWizard(common.HttpCase):
         return (
             self.env["res.users.apikeys"]
             .sudo()
-            .search(
-                [("user_id", "=", self.wizard_user.id)], order="id desc", limit=1
-            )
+            .search([("user_id", "=", self.wizard_user.id)], order="id desc", limit=1)
             .scope
         )
 
@@ -327,9 +314,7 @@ class TestApiKeyScopeWizard(common.HttpCase):
         same way ``run_check`` does and pin the flag, so a decorator removal fails
         here rather than only at runtime.
         """
-        make_key = getattr(
-            self.env["res.users.apikeys.description"], "make_key"
-        )
+        make_key = getattr(self.env["res.users.apikeys.description"], "make_key")
         self.assertTrue(
             getattr(make_key, "__has_check_identity", False),
             "make_key must keep the @check_identity decorator",
@@ -349,9 +334,7 @@ class TestApiKeyScopeWizard(common.HttpCase):
         there). Both assert: the key is NOT mcp-scoped.
         """
         scope = self._run_make_key("global")
-        has_core_scope_field = (
-            "scope" in self.env["res.users.apikeys.description"]._fields
-        )
+        has_core_scope_field = "scope" in self.env["res.users.apikeys.description"]._fields
         if has_core_scope_field:  # Odoo 20+
             self.assertEqual(scope, "rpc")
         else:  # Odoo 19

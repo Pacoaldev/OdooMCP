@@ -103,9 +103,7 @@ class TestUserContext(common.HttpCase):
     # ------------------------------------------------------------------
     def test_initialize_instructions_name_user_and_timezone(self):
         """initialize returns instructions naming the key owner and timezone."""
-        result = self._rpc_result(
-            "initialize", {"protocolVersion": PREFERRED_PROTOCOL_VERSION}
-        )
+        result = self._rpc_result("initialize", {"protocolVersion": PREFERRED_PROTOCOL_VERSION})
         instructions = result["instructions"]
         self.assertIsInstance(instructions, str)
         # The block names the connected user and their configured timezone.
@@ -131,9 +129,7 @@ class TestUserContext(common.HttpCase):
     def test_get_current_context_lists_both_allowed_companies(self):
         """A user with two allowed companies sees both listed in the context."""
         company_a = self.mcp_user.company_id
-        company_b = self.env["res.company"].create(
-            {"name": f"MCP Second Co {self.unique_id}"}
-        )
+        company_b = self.env["res.company"].create({"name": f"MCP Second Co {self.unique_id}"})
         multi_user = create_test_user(
             self.env,
             "MCP Multi Co User",
@@ -181,12 +177,8 @@ class TestUserContext(common.HttpCase):
     def test_initialize_omits_instructions_when_context_build_fails(self):
         """initialize stays a valid result (no instructions key) if build raises."""
         # Patch the symbol _initialize actually calls (utils.build_user_context).
-        with patch.object(
-            utils, "build_user_context", side_effect=Exception("boom")
-        ):
-            result = self._rpc_result(
-                "initialize", {"protocolVersion": PREFERRED_PROTOCOL_VERSION}
-            )
+        with patch.object(utils, "build_user_context", side_effect=Exception("boom")):
+            result = self._rpc_result("initialize", {"protocolVersion": PREFERRED_PROTOCOL_VERSION})
         self.assertNotIn("instructions", result)
         # The handshake itself is unaffected.
         self.assertIn("serverInfo", result)

@@ -38,11 +38,7 @@ class TestHelpers:
 
         for field_name, field_info in fields_info.items():
             # Skip computed, related, and readonly fields
-            if (
-                field_info.get("compute")
-                or field_info.get("related")
-                or field_info.get("readonly")
-            ):
+            if field_info.get("compute") or field_info.get("related") or field_info.get("readonly"):
                 continue
 
             if field_info.get("required"):
@@ -216,11 +212,7 @@ def create_test_config_settings(env, **kwargs):
             # (company-backed) settings fields itself, and writing one can
             # trip a company constraint (e.g. account_price_include once
             # the company has posted invoices).
-            if (
-                field_info.get("compute")
-                or field_info.get("readonly")
-                or field_info.get("related")
-            ):
+            if field_info.get("compute") or field_info.get("readonly") or field_info.get("related"):
                 continue
 
             # Provide safe defaults based on field type

@@ -31,14 +31,10 @@ class TestModelSelectionUI(HttpCase):
         """Test that the model form view loads correctly."""
         self.authenticate("mcp_admin", TEST_PASSWORD)
 
-        partner_model = self.env["ir.model"].search(
-            [("model", "=", "res.partner")], limit=1
-        )
+        partner_model = self.env["ir.model"].search([("model", "=", "res.partner")], limit=1)
 
         # Check if model already exists in mcp.enabled.model
-        existing_model = self.env["mcp.enabled.model"].search(
-            [("model_id", "=", partner_model.id)]
-        )
+        existing_model = self.env["mcp.enabled.model"].search([("model_id", "=", partner_model.id)])
 
         if not existing_model:
             # Create a test enabled model
@@ -60,17 +56,13 @@ class TestModelSelectionUI(HttpCase):
         """Test that the model selection wizard loads correctly."""
         self.authenticate("mcp_admin", TEST_PASSWORD)
 
-        response = self.url_open(
-            "/web#action=mcp_server.action_mcp_model_selection_wizard"
-        )
+        response = self.url_open("/web#action=mcp_server.action_mcp_model_selection_wizard")
         self.assertEqual(response.status_code, 200)
 
     def test_model_selection_wizard_action(self):
         """Test the action of the model selection wizard."""
         # Find models that are not enabled yet (e.g., res.company, res.users)
-        company_model = self.env["ir.model"].search(
-            [("model", "=", "res.company")], limit=1
-        )
+        company_model = self.env["ir.model"].search([("model", "=", "res.company")], limit=1)
         user_model = self.env["ir.model"].search([("model", "=", "res.users")], limit=1)
         # Ensure the models exist
         self.assertTrue(company_model, "Test requires res.company model")
@@ -78,16 +70,12 @@ class TestModelSelectionUI(HttpCase):
         models_to_enable = company_model + user_model
 
         # Ensure these models are not already enabled
-        self.env["mcp.enabled.model"].search(
-            [("model_id", "in", models_to_enable.ids)]
-        ).unlink()
+        self.env["mcp.enabled.model"].search([("model_id", "in", models_to_enable.ids)]).unlink()
 
         # Create the wizard instance
         wizard = (
             self.env["mcp.model.selection.wizard"]
-            .with_user(
-                self.env.ref("mcp_server.group_mcp_admin").user_ids[0]
-            )  # Run as MCP Admin
+            .with_user(self.env.ref("mcp_server.group_mcp_admin").user_ids[0])  # Run as MCP Admin
             .create(
                 {
                     "model_ids": [(6, 0, models_to_enable.ids)],
@@ -115,9 +103,7 @@ class TestModelSelectionUI(HttpCase):
         self.assertFalse(enabled_company.allow_write)
         self.assertFalse(enabled_company.allow_unlink)
 
-        enabled_user = self.env["mcp.enabled.model"].search(
-            [("model_id", "=", user_model.id)]
-        )
+        enabled_user = self.env["mcp.enabled.model"].search([("model_id", "=", user_model.id)])
         self.assertTrue(enabled_user, "res.users model should be enabled by wizard")
         self.assertTrue(enabled_user.allow_read)
         self.assertTrue(enabled_user.allow_create)

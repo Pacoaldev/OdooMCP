@@ -35,9 +35,7 @@ def clear_mcp_caches() -> None:
     """
     try:
         env = request.env
-        if hasattr(env, "transaction") and hasattr(
-            env.transaction, "invalidate_ormcache"
-        ):
+        if hasattr(env, "transaction") and hasattr(env.transaction, "invalidate_ormcache"):
             env.transaction.invalidate_ormcache()
         elif hasattr(env.registry, "clear_cache"):
             env.registry.clear_cache()
@@ -59,9 +57,7 @@ def sanitize_model_name(model_name: str) -> str:
     return model_name.strip()
 
 
-def _sanitize_or_log(
-    model_name: str, log_prefix: str = "Invalid model name"
-) -> Optional[str]:
+def _sanitize_or_log(model_name: str, log_prefix: str = "Invalid model name") -> Optional[str]:
     """Sanitize a model name, logging and returning ``None`` if malformed.
 
     Centralizes the ``sanitize_model_name`` try/except the gate functions
@@ -152,9 +148,7 @@ def is_model_mcp_enabled(env: Environment, model_name: str) -> bool:
         return False
 
 
-def check_model_operation_allowed(
-    env: Environment, model_name: str, operation: str
-) -> bool:
+def check_model_operation_allowed(env: Environment, model_name: str, operation: str) -> bool:
     """
     Check if a specific operation is allowed for an MCP-enabled model via
     `mcp.enabled.model.check_model_operation_enabled()`, which is @ormcache-d
@@ -171,9 +165,7 @@ def check_model_operation_allowed(
 
     valid_operations = ["read", "create", "write", "unlink"]
     if operation not in valid_operations:
-        _logger.warning(
-            f"Invalid operation '{operation}' requested for model '{model_name}'"
-        )
+        _logger.warning(f"Invalid operation '{operation}' requested for model '{model_name}'")
         return False
 
     if not is_model_mcp_enabled(env, model_name):
@@ -185,10 +177,7 @@ def check_model_operation_allowed(
         ].sudo()  # sudo: admin-managed MCP config, not user data
         return mcp_models.check_model_operation_enabled(model_name, operation)
     except Exception as e:
-        message = (
-            f"Error checking if operation {operation} "
-            f"is allowed for model {model_name}: {e}"
-        )
+        message = f"Error checking if operation {operation} is allowed for model {model_name}: {e}"
         _logger.error(message)
         return False
 
@@ -216,9 +205,7 @@ def check_model_method_allowed(env: Environment, model_name: str) -> bool:
         ].sudo()  # sudo: admin-managed MCP config, not user data
         return mcp_models.is_method_call_enabled(model_name)
     except Exception as e:
-        _logger.error(
-            f"Error checking if method calls are allowed for model {model_name}: {e}"
-        )
+        _logger.error(f"Error checking if method calls are allowed for model {model_name}: {e}")
         return False
 
 
@@ -232,9 +219,7 @@ def get_enabled_models(env: Environment) -> List[Dict]:
         return []
 
     try:
-        enabled_model_records = (
-            env["mcp.enabled.model"].sudo().search([("active", "=", True)])
-        )
+        enabled_model_records = env["mcp.enabled.model"].sudo().search([("active", "=", True)])
 
         # Batch fetch all model names to avoid N+1 queries
         model_names = enabled_model_records.mapped("model_name")
@@ -350,9 +335,7 @@ def check_mcp_access(env: Environment, model_name: str, method_name: str) -> boo
     Check if an XML-RPC method is allowed for a given model via MCP configuration.
     """
     if not model_name or not method_name:
-        _logger.warning(
-            f"MCP: Invalid model or method name: {model_name}, {method_name}"
-        )
+        _logger.warning(f"MCP: Invalid model or method name: {model_name}, {method_name}")
         return False
 
     model_name = _sanitize_or_log(model_name, "MCP")
@@ -365,9 +348,7 @@ def check_mcp_access(env: Environment, model_name: str, method_name: str) -> boo
         _logger.info("MCP: Access denied because MCP is globally disabled.")
         return False
 
-    model_exists = bool(
-        env["ir.model"].sudo().search([("model", "=", model_name)], limit=1)
-    )
+    model_exists = bool(env["ir.model"].sudo().search([("model", "=", model_name)], limit=1))
     if not model_exists:
         message = f"MCP: Model {model_name} does not exist in this Odoo instance."
         _logger.warning(message)
@@ -391,9 +372,7 @@ def check_mcp_access(env: Environment, model_name: str, method_name: str) -> boo
         return False
 
     operation_allowed = (
-        env["mcp.enabled.model"]
-        .sudo()
-        .check_model_operation_enabled(model_name, operation)
+        env["mcp.enabled.model"].sudo().check_model_operation_enabled(model_name, operation)
     )
 
     if not operation_allowed:
@@ -408,9 +387,7 @@ def check_mcp_access(env: Environment, model_name: str, method_name: str) -> boo
     # Additional security check: Don't allow methods that start
     # with underscore (private methods)
     if method_name.startswith("_"):
-        _logger.warning(
-            f"MCP: Attempted access to private method {method_name}. Access denied."
-        )
+        _logger.warning(f"MCP: Attempted access to private method {method_name}. Access denied.")
         return False
 
     message = (
@@ -519,14 +496,11 @@ def _x2many_commands(value, field: str) -> list:
         if all(isinstance(i, (int, str)) and not isinstance(i, bool) for i in value):
             return [(6, 0, list(value))]
     raise UnreadableWriteValues(
-        f"Field '{field}' takes a list of commands, such as [0, 0, {{...}}], "
-        "or a list of ids."
+        f"Field '{field}' takes a list of commands, such as [0, 0, {{...}}], or a list of ids."
     )
 
 
-def _iter_x2many_commands(
-    model, values, path: str = "", creating: bool = False, defaults=None
-):
+def _iter_x2many_commands(model, values, path: str = "", creating: bool = False, defaults=None):
     """Yield ``(comodel, command, operations, field)`` for each x2many command.
 
     The values of a create or update command are walked again with the
@@ -545,8 +519,7 @@ def _iter_x2many_commands(
             name: value
             for name, value in defaults.items()
             if name not in values
-            and getattr(model._fields.get(name), "type", None)
-            in ("one2many", "many2many")
+            and getattr(model._fields.get(name), "type", None) in ("one2many", "many2many")
         }
         values = {**filled, **values}
     for name, value in values.items():
@@ -556,15 +529,11 @@ def _iter_x2many_commands(
         comodel = model.env[field.comodel_name]
         field_path = f"{path}{name}"
         commands = _x2many_commands(value, field_path)
-        written, writes_create, replaces = _written_field(
-            model, field, values, creating, defaults
-        )
+        written, writes_create, replaces = _written_field(model, field, values, creating, defaults)
         if replaces:
             commands = [(5,)] + commands
         for command in commands:
-            operations = _nested_command_operations(
-                comodel, written, command, writes_create
-            )
+            operations = _nested_command_operations(comodel, written, command, writes_create)
             yield comodel, command, operations, field_path
             if command[0] in (0, 1):
                 nested = command[2] if len(command) > 2 else None
@@ -586,9 +555,7 @@ def _iter_x2many_commands(
                 )
 
 
-def iter_nested_operations(
-    model, values, path: str = "", creating: bool = False, defaults=None
-):
+def iter_nested_operations(model, values, path: str = "", creating: bool = False, defaults=None):
     """Yield ``(comodel, operation, field)`` for each x2many command in ``values``.
 
     ``model`` is a recordset of the model that ``values`` are written to, and
@@ -670,9 +637,7 @@ def denied_write_operation(
             if comodel._name == "ir.attachment" and operations:
                 owners.update(_nested_attachment_owners(env, command, field))
     if model_name == "ir.attachment":
-        owners.update(
-            (owner, "res_model") for owner in records.mapped("res_model") if owner
-        )
+        owners.update((owner, "res_model") for owner in records.mapped("res_model") if owner)
         for values in values_list:
             owner = _owner_model(values.get("res_model"), "res_model")
             if owner:
@@ -731,11 +696,7 @@ def legacy_write_operands(env: Environment, model_name: str, method: str, args, 
         if not all(isinstance(vals, dict) for vals in values_list):
             raise UnreadableWriteValues(
                 f"The values of '{method}' must be an object (a dict)"
-                + (
-                    " or a list of objects."
-                    if method in ("create", "web_save_multi")
-                    else "."
-                )
+                + (" or a list of objects." if method in ("create", "web_save_multi") else ".")
             )
     if model_name == "ir.attachment" and ids_index is not None:
         ids = args[ids_index] if len(args) > ids_index else []
@@ -825,9 +786,7 @@ def legacy_write_denial(env: Environment, model_name: str, method: str, args, kw
         raise UnreadableWriteValues("The context must be an object (a dict).")
     if method == "web_save_multi":
         positional = args if isinstance(args, (list, tuple)) else []
-        specification = (
-            positional[2] if len(positional) > 2 else kwargs.get("specification")
-        )
+        specification = positional[2] if len(positional) > 2 else kwargs.get("specification")
         if specification is not None and not isinstance(specification, dict):
             raise UnreadableWriteValues(
                 "The specification of 'web_save_multi' must be an object (a dict)."
@@ -853,9 +812,7 @@ def legacy_write_denial(env: Environment, model_name: str, method: str, args, kw
         values_list = [{}]
     if method != "unlink":
         for key, value in context.items():
-            if str(key).startswith("default_") and isinstance(
-                value, (list, tuple, dict)
-            ):
+            if str(key).startswith("default_") and isinstance(value, (list, tuple, dict)):
                 return (
                     f"Access denied by MCP for the context key '{_one_line(str(key))}':"
                     " a default in the context must be a plain value."
@@ -873,9 +830,7 @@ def legacy_write_denial(env: Environment, model_name: str, method: str, args, kw
                     f"Access denied by MCP for the context key '{key}': the owner "
                     "of an attachment must be in the values."
                 )
-    denied = denied_write_operation(
-        env, model_name, records, values_list, creating, defaults
-    )
+    denied = denied_write_operation(env, model_name, records, values_list, creating, defaults)
     if denied:
         return (
             f"Access denied by MCP for operation '{denied[1]}' on "

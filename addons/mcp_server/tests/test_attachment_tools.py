@@ -35,8 +35,7 @@ from .test_helpers import create_test_user, grant_mcp_access, users_groups_field
 
 # Valid 1x1 RGB PNG (base64 for the Image field, raw bytes for attachments).
 _PNG_1X1_B64 = (
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4"
-    "nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
 )
 _PNG_1X1 = base64.b64decode(_PNG_1X1_B64)
 # Minimal PDF-looking payload (the parser is patched in the tests).
@@ -63,11 +62,7 @@ class TestAttachmentToolsBase(common.TransactionCase):
         # Partner manager: plain internal users may only read res.partner, and
         # the upload tests need a writable (non-admin) parent record.
         cls.mcp_user.write(
-            {
-                users_groups_field(cls.env): [
-                    (4, cls.env.ref("base.group_partner_manager").id)
-                ]
-            }
+            {users_groups_field(cls.env): [(4, cls.env.ref("base.group_partner_manager").id)]}
         )
         cls.partner = cls.env["res.partner"].create(
             {"name": f"Attachment Partner {unique_id}", "image_1920": _PNG_1X1_B64}
@@ -81,9 +76,7 @@ class TestAttachmentToolsBase(common.TransactionCase):
         # TransactionCase).
         mock_request = MagicMock()
         mock_request.env = self.env
-        patcher = patch(
-            "odoo.addons.mcp_server.controllers.utils.request", mock_request
-        )
+        patcher = patch("odoo.addons.mcp_server.controllers.utils.request", mock_request)
         patcher.start()
         self.addCleanup(patcher.stop)
         params = self.env["ir.config_parameter"].sudo()
@@ -115,19 +108,13 @@ class TestAttachmentToolsBase(common.TransactionCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         utils.clear_mcp_caches()
         return record
 
     def _disable_model(self, model_xmlid):
         model_id = self.env.ref(model_xmlid).id
-        self.env["mcp.enabled.model"].sudo().search(
-            [("model_id", "=", model_id)]
-        ).unlink()
+        self.env["mcp.enabled.model"].sudo().search([("model_id", "=", model_id)]).unlink()
         utils.clear_mcp_caches()
 
     def _attachment(self, name, raw, mimetype, **vals):
@@ -382,9 +369,7 @@ class TestReadAttachmentLink(TestAttachmentToolsBase):
             result = self.mixin.read_attachment(attachment_id=att.id, format="link")
         after = att.sudo().read(["write_date", "checksum", "store_fname"])[0]
         self.assertEqual(before, after)
-        self.assertEqual(
-            self.env["ir.attachment"].sudo().search_count([]), count_before
-        )
+        self.assertEqual(self.env["ir.attachment"].sudo().search_count([]), count_before)
         self.assertEqual(result["structuredContent"]["format_used"], "link")
 
     def test_attachment_link_shape(self):
@@ -398,9 +383,7 @@ class TestReadAttachmentLink(TestAttachmentToolsBase):
         self.assertIn("expires_at", structured)
         self.assertIn(structured["download_url"], result["content"][0]["text"])
         token = path.split("access_token=", 1)[1].split("&", 1)[0]
-        self.assertTrue(
-            verify_limited_field_access_token(att, "raw", token, scope="binary")
-        )
+        self.assertTrue(verify_limited_field_access_token(att, "raw", token, scope="binary"))
 
     def test_record_field_link_shape_without_payload_read(self):
         uri = f"odoo://record/res.partner/{self.partner.id}/image_1920"
@@ -409,16 +392,11 @@ class TestReadAttachmentLink(TestAttachmentToolsBase):
         structured = result["structuredContent"]
         path = structured["download_path"]
         self.assertTrue(
-            path.startswith(
-                f"/web/content/res.partner/{self.partner.id}/image_1920"
-                "?access_token="
-            )
+            path.startswith(f"/web/content/res.partner/{self.partner.id}/image_1920?access_token=")
         )
         token = path.split("access_token=", 1)[1].split("&", 1)[0]
         self.assertTrue(
-            verify_limited_field_access_token(
-                self.partner, "image_1920", token, scope="binary"
-            )
+            verify_limited_field_access_token(self.partner, "image_1920", token, scope="binary")
         )
 
     def test_link_without_base_url_keeps_relative_path(self):
@@ -441,9 +419,9 @@ class TestReadAttachmentLink(TestAttachmentToolsBase):
         structured = result["structuredContent"]
         expiry = self._token_expiry(structured["download_path"])
         self.assertAlmostEqual(expiry, start + expected_ttl, delta=5)
-        parsed = datetime.strptime(
-            structured["expires_at"], "%Y-%m-%dT%H:%M:%SZ"
-        ).replace(tzinfo=timezone.utc)
+        parsed = datetime.strptime(structured["expires_at"], "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc
+        )
         self.assertEqual(int(parsed.timestamp()), expiry)
 
     def test_ttl_default(self):
@@ -552,16 +530,12 @@ class TestReadAttachmentGating(TestAttachmentToolsBase):
         company = self.env.company
         company.sudo().write({"logo_web": False})
         with self.assertRaises(MissingError):
-            self.mixin.read_attachment(
-                uri=f"odoo://record/res.company/{company.id}/logo_web"
-            )
+            self.mixin.read_attachment(uri=f"odoo://record/res.company/{company.id}/logo_web")
 
     def test_uri_and_attachment_id_are_exclusive(self):
         att = self._attachment("note.txt", b"x", "text/plain")
         with self.assertRaises(UserError):
-            self.mixin.read_attachment(
-                uri=f"odoo://attachment/{att.id}", attachment_id=att.id
-            )
+            self.mixin.read_attachment(uri=f"odoo://attachment/{att.id}", attachment_id=att.id)
         with self.assertRaises(UserError):
             self.mixin.read_attachment()
 
@@ -652,9 +626,7 @@ class TestListRecordAttachments(TestAttachmentToolsBase):
         for idx in range(4):
             self._attachment(f"f{idx}.txt", b"x", "text/plain")
         self.env["ir.config_parameter"].sudo().set_str("mcp_server.max_limit", "2")
-        result = self.mixin.list_record_attachments(
-            "res.partner", self.partner.id, limit=50
-        )
+        result = self.mixin.list_record_attachments("res.partner", self.partner.id, limit=50)
         structured = result["structuredContent"]
         self.assertEqual(structured["limit"], 2)
         self.assertEqual(len(structured["attachments"]), 2)
@@ -781,9 +753,7 @@ class TestUploadAttachment(TestAttachmentToolsBase):
     def test_explicit_mimetype_and_guess(self):
         self._enable_model("base.model_ir_attachment", allow_create=True)
         pdf = base64.b64encode(_PDF_BYTES).decode("ascii")
-        explicit = self.mixin.upload_attachment(
-            "doc.bin", pdf, mimetype="application/pdf"
-        )
+        explicit = self.mixin.upload_attachment("doc.bin", pdf, mimetype="application/pdf")
         self.assertEqual(explicit["structuredContent"]["mimetype"], "application/pdf")
         guessed = self.mixin.upload_attachment("doc.pdf", pdf)
         self.assertEqual(guessed["structuredContent"]["mimetype"], "application/pdf")
@@ -826,9 +796,7 @@ class TestUploadAttachment(TestAttachmentToolsBase):
 
     def test_acl_user_without_parent_write(self):
         """MCP gate passes but Odoo denies the write on the parent record."""
-        self._enable_model(
-            "base.model_ir_mail_server", allow_read=True, allow_write=True
-        )
+        self._enable_model("base.model_ir_mail_server", allow_read=True, allow_write=True)
         server = (
             self.env["ir.mail_server"]
             .sudo()
@@ -856,9 +824,7 @@ class TestAttachmentAuditAttribution(common.TransactionCase):
 
     def test_attachment_audit_model(self):
         resolve = MCPController._attachment_audit_model
-        self.assertEqual(
-            resolve("read_attachment", {"attachment_id": 7}), "ir.attachment"
-        )
+        self.assertEqual(resolve("read_attachment", {"attachment_id": 7}), "ir.attachment")
         self.assertEqual(
             resolve("read_attachment", {"uri": "odoo://record/res.partner/3/image"}),
             "res.partner",

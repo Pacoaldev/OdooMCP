@@ -399,9 +399,7 @@ class TestXmlrpcErrorMapping(TransactionCase):
         error = RedirectWarning("Set up the company first.", 1, "Go")
         self.assertEqual(api._fault_code_for(error), api.RPC_FAULT_CODE_WARNING)
         self.assertEqual(api._audit_code_for(error), XMLRPC_FAULT_CODES["bad_request"])
-        self.assertEqual(
-            error_sanitizer.sanitize_exception(error), "Set up the company first."
-        )
+        self.assertEqual(error_sanitizer.sanitize_exception(error), "Set up the company first.")
 
     def test_password_gate_masks_only_credential_errors(self):
         """A refused credential is AccessDenied; any other error propagates."""
@@ -412,15 +410,20 @@ class TestXmlrpcErrorMapping(TransactionCase):
                 MissingError("gone"),
                 PasswordSizeError(4096),
             ):
-                with self.subTest(error=type(error).__name__), patch.object(
-                    MCPObjectController, "_verify_uid_passwd", side_effect=error
-                ), self.assertRaises(AccessDenied):
+                with (
+                    self.subTest(error=type(error).__name__),
+                    patch.object(MCPObjectController, "_verify_uid_passwd", side_effect=error),
+                    self.assertRaises(AccessDenied),
+                ):
                     controller._gate_password_credential(2, "secret")
-            with patch.object(
-                MCPObjectController,
-                "_verify_uid_passwd",
-                side_effect=psycopg2.OperationalError("database down"),
-            ), self.assertRaises(psycopg2.OperationalError):
+            with (
+                patch.object(
+                    MCPObjectController,
+                    "_verify_uid_passwd",
+                    side_effect=psycopg2.OperationalError("database down"),
+                ),
+                self.assertRaises(psycopg2.OperationalError),
+            ):
                 controller._gate_password_credential(2, "secret")
             # A credential that cannot be proven is refused before any check.
             with patch.object(MCPObjectController, "_verify_uid_passwd") as verify:
@@ -431,9 +434,7 @@ class TestXmlrpcErrorMapping(TransactionCase):
                     ("x", "secret"),
                     (float("inf"), "secret"),
                 ):
-                    with self.subTest(uid=uid, password=password), self.assertRaises(
-                        AccessDenied
-                    ):
+                    with self.subTest(uid=uid, password=password), self.assertRaises(AccessDenied):
                         controller._gate_password_credential(uid, password)
                 verify.assert_not_called()
             # Every refused credential writes its auth-failure row.

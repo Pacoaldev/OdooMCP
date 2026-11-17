@@ -69,9 +69,7 @@ def _log_auth_failure(error_message, api_key_used=True, user_id=None):
 
 # Audit-log reason recorded when a valid credential resolves a user outside
 # the MCP access group; shared by every door so the rows stay greppable.
-MCP_GROUP_DENIED_MESSAGE = (
-    "User is not a member of the MCP User group (mcp_server.group_mcp_user)"
-)
+MCP_GROUP_DENIED_MESSAGE = "User is not a member of the MCP User group (mcp_server.group_mcp_user)"
 
 
 def log_mcp_group_denied(user, *, api_key_used):
@@ -81,9 +79,7 @@ def log_mcp_group_denied(user, *, api_key_used):
     resolved user is always recorded; rides ``_log_auth_failure``'s per-IP
     throttle. ``api_key_used`` records the credential kind for the row.
     """
-    _log_auth_failure(
-        MCP_GROUP_DENIED_MESSAGE, api_key_used=api_key_used, user_id=user.id
-    )
+    _log_auth_failure(MCP_GROUP_DENIED_MESSAGE, api_key_used=api_key_used, user_id=user.id)
 
 
 def _seed_default_env(user):

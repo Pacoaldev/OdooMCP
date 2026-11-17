@@ -11,12 +11,8 @@ class TestMcpEnabledModels(TransactionCase):
 
     def setUp(self):
         super().setUp()
-        self.partner_model = self.env["ir.model"].search(
-            [("model", "=", "res.partner")], limit=1
-        )
-        self.user_model = self.env["ir.model"].search(
-            [("model", "=", "res.users")], limit=1
-        )
+        self.partner_model = self.env["ir.model"].search([("model", "=", "res.partner")], limit=1)
+        self.user_model = self.env["ir.model"].search([("model", "=", "res.users")], limit=1)
 
         # Test isolation: drop any res.users enabled-model records left by
         # other tests
@@ -71,37 +67,27 @@ class TestMcpEnabledModels(TransactionCase):
         """Test if operation permissions are correctly checked."""
         # Test allowed operations
         self.assertTrue(
-            self.env["mcp.enabled.model"].check_model_operation_enabled(
-                "res.partner", "read"
-            ),
+            self.env["mcp.enabled.model"].check_model_operation_enabled("res.partner", "read"),
             "Read operation should be allowed for partner model",
         )
         self.assertTrue(
-            self.env["mcp.enabled.model"].check_model_operation_enabled(
-                "res.partner", "create"
-            ),
+            self.env["mcp.enabled.model"].check_model_operation_enabled("res.partner", "create"),
             "Create operation should be allowed for partner model",
         )
 
         # Test disallowed operations
         self.assertFalse(
-            self.env["mcp.enabled.model"].check_model_operation_enabled(
-                "res.partner", "write"
-            ),
+            self.env["mcp.enabled.model"].check_model_operation_enabled("res.partner", "write"),
             "Write operation should not be allowed for partner model",
         )
         self.assertFalse(
-            self.env["mcp.enabled.model"].check_model_operation_enabled(
-                "res.partner", "unlink"
-            ),
+            self.env["mcp.enabled.model"].check_model_operation_enabled("res.partner", "unlink"),
             "Unlink operation should not be allowed for partner model",
         )
 
         # Test non-enabled model
         self.assertFalse(
-            self.env["mcp.enabled.model"].check_model_operation_enabled(
-                "res.users", "read"
-            ),
+            self.env["mcp.enabled.model"].check_model_operation_enabled("res.users", "read"),
             "Read operation should not be allowed for non-enabled model",
         )
 
@@ -135,12 +121,8 @@ class TestMcpEnabledModels(TransactionCase):
         The guard must hold on a direct create/RPC, independent of the wizard's
         UI filter which only hides these models from the picker.
         """
-        internal_model = self.env["ir.model"].search(
-            [("model", "=", "mcp.oauth.token")], limit=1
-        )
-        self.assertTrue(
-            internal_model, "mcp.oauth.token ir.model should exist in this module"
-        )
+        internal_model = self.env["ir.model"].search([("model", "=", "mcp.oauth.token")], limit=1)
+        self.assertTrue(internal_model, "mcp.oauth.token ir.model should exist in this module")
         with self.assertRaises(ValidationError):
             self.env["mcp.enabled.model"].create(
                 {"model_id": internal_model.id, "allow_read": True}
@@ -161,9 +143,7 @@ class TestMcpEnabledModels(TransactionCase):
         )
 
         # First, ensure no existing enabled record for this model
-        existing = self.env["mcp.enabled.model"].search(
-            [("model_id", "=", different_model.id)]
-        )
+        existing = self.env["mcp.enabled.model"].search([("model_id", "=", different_model.id)])
         if existing:
             existing.unlink()
 

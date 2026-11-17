@@ -75,8 +75,7 @@ class OauthToken(models.Model, TokenMixin):
     )
     audience = fields.Char(
         string="Audience",
-        help="RFC 8707 resource the token is bound to; checked when the token "
-        "is presented.",
+        help="RFC 8707 resource the token is bound to; checked when the token is presented.",
     )
     access_expires_at = fields.Datetime(
         string="Access Token Expiry",
@@ -92,15 +91,13 @@ class OauthToken(models.Model, TokenMixin):
         default=False,
         copy=False,
         index=True,
-        help="Set when the token is revoked (rotation, admin action or replay "
-        "detection).",
+        help="Set when the token is revoked (rotation, admin action or replay detection).",
     )
     refresh_family_id = fields.Char(
         string="Refresh Family",
         index=True,
         copy=False,
-        help="Shared ID across a rotated refresh-token chain; enables reuse "
-        "detection.",
+        help="Shared ID across a rotated refresh-token chain; enables reuse detection.",
     )
     # Redeclared to add a DB index: create_date backs the _order
     # ("create_date desc") for the admin Tokens list over this table.
@@ -190,9 +187,7 @@ class OauthToken(models.Model, TokenMixin):
         refresh_token = token.get("refresh_token")
         if refresh_token:
             vals["refresh_token_hash"] = _sha256(refresh_token)
-            vals["refresh_expires_at"] = now + timedelta(
-                seconds=_REFRESH_TOKEN_TTL_SECONDS
-            )
+            vals["refresh_expires_at"] = now + timedelta(seconds=_REFRESH_TOKEN_TTL_SECONDS)
         new_token = self.create(vals)
         oauth2_request.client._mark_token_issued()
         # Link the code to the family it produced so a later code replay revokes
@@ -256,9 +251,7 @@ class OauthToken(models.Model, TokenMixin):
         """
         if not family_id:
             return
-        self.search(
-            [("refresh_family_id", "=", family_id), ("revoked", "=", False)]
-        )._revoke()
+        self.search([("refresh_family_id", "=", family_id), ("revoked", "=", False)])._revoke()
 
     @api.model
     def _detect_refresh_reuse(self, refresh_token):
@@ -361,10 +354,8 @@ class OauthToken(models.Model, TokenMixin):
                 break
             last_id = batch[-1].id
             to_delete = batch.filtered(
-                lambda c: not (
-                    c.used
-                    and c.refresh_family_id
-                    and c.refresh_family_id in live_family_ids
+                lambda c: (
+                    not (c.used and c.refresh_family_id and c.refresh_family_id in live_family_ids)
                 )
             )
             code_count += len(to_delete)

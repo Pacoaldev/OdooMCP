@@ -111,9 +111,7 @@ class TestMcpWriteTools(common.HttpCase):
         self._enable_model("base.model_res_country", allow_read=True)
         # ir.mail_server: MCP create allowed, but admin-only in Odoo -> the
         # low-priv user is blocked by the ORM (AccessError, not the MCP gate).
-        self._enable_model(
-            "base.model_ir_mail_server", allow_read=True, allow_create=True
-        )
+        self._enable_model("base.model_ir_mail_server", allow_read=True, allow_create=True)
         # res.partner.category: ``name`` is required with no default -> a
         # deterministic fixture for batch atomicity (one bad entry, zero rows).
         self._enable_model(
@@ -124,9 +122,7 @@ class TestMcpWriteTools(common.HttpCase):
         )
 
         # A target record for call_model_method.
-        self.partner = self.env["res.partner"].create(
-            {"name": f"MCP Method Target {unique_id}"}
-        )
+        self.partner = self.env["res.partner"].create({"name": f"MCP Method Target {unique_id}"})
 
         params = self.env["ir.config_parameter"].sudo()
         params.set_str("mcp_server.enabled", "True")
@@ -155,11 +151,7 @@ class TestMcpWriteTools(common.HttpCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         return record
 
     def _set_method_calls(self, enabled):
@@ -218,11 +210,14 @@ class TestMcpWriteTools(common.HttpCase):
 
         mixin_cls = type(self.env["mcp.mixin"])
         boom = MagicMock(side_effect=SerializationFailure("could not serialize access"))
-        with mute_logger(
-            "odoo.addons.mcp_server.controllers.mcp_dispatcher",
-            "odoo.http",
-            "odoo.service.model",
-        ), patch.object(mixin_cls, "_resolve_model", boom):
+        with (
+            mute_logger(
+                "odoo.addons.mcp_server.controllers.mcp_dispatcher",
+                "odoo.http",
+                "odoo.service.model",
+            ),
+            patch.object(mixin_cls, "_resolve_model", boom),
+        ):
             response = self._post_rpc(
                 {
                     "jsonrpc": "2.0",
@@ -274,9 +269,7 @@ class TestMcpWriteTools(common.HttpCase):
         self.env.invalidate_all()
         self.assertEqual(self.env["res.partner"].browse(new_id).name, "MCP Updated")
 
-        delete_res = self._call_tool(
-            "delete_record", {"model": "res.partner", "record_id": new_id}
-        )
+        delete_res = self._call_tool("delete_record", {"model": "res.partner", "record_id": new_id})
         self.assertFalse(delete_res["isError"], msg=delete_res)
         self.env.invalidate_all()
         self.assertFalse(self.env["res.partner"].browse(new_id).exists())
@@ -380,9 +373,7 @@ class TestMcpWriteTools(common.HttpCase):
             patch("odoo.addons.mcp_server.controllers.utils.request", mock_request),
             self.assertRaisesRegex(UserError, "'kwargs' must be an object"),
         ):
-            self.env["mcp.mixin"].call_model_method(
-                "res.partner", "default_get", kwargs="x"
-            )
+            self.env["mcp.mixin"].call_model_method("res.partner", "default_get", kwargs="x")
 
     def test_wrong_typed_arguments_refused_before_the_tool_runs(self):
         """Wrong-typed builtin arguments get a precise isError, not a crash.
@@ -415,8 +406,7 @@ class TestMcpWriteTools(common.HttpCase):
             "mimetype": (
                 "upload_attachment",
                 {"name": "a.txt", "data": "aGk=", "mimetype": 5},
-                "Invalid argument 'mimetype': must be a string or null, got an "
-                "integer.",
+                "Invalid argument 'mimetype': must be a string or null, got an integer.",
             ),
         }
         for label, (tool, arguments, message) in refused.items():
@@ -424,9 +414,7 @@ class TestMcpWriteTools(common.HttpCase):
                 result = self._call_tool(tool, arguments)
                 self.assertTrue(result["isError"], msg=result)
                 self.assertEqual(result["content"][0]["text"], message)
-        self.assertEqual(
-            (messages.search_count([]), attachments.search_count([])), before
-        )
+        self.assertEqual((messages.search_count([]), attachments.search_count([])), before)
 
     def test_in_tool_type_checks_hold_without_the_schema_check(self):
         """Called directly (no /mcp schema check), the tools refuse bad types cleanly.
@@ -439,9 +427,7 @@ class TestMcpWriteTools(common.HttpCase):
         self._set_method_calls(True)
         # The gates read the master switch off ``request.env``; bind a
         # request-like object to the test env (no HTTP layer here).
-        patcher = patch(
-            "odoo.addons.mcp_server.controllers.utils.request", MagicMock(env=self.env)
-        )
+        patcher = patch("odoo.addons.mcp_server.controllers.utils.request", MagicMock(env=self.env))
         patcher.start()
         self.addCleanup(patcher.stop)
         mixin = self.env["mcp.mixin"].with_user(self.mcp_user)
@@ -454,9 +440,7 @@ class TestMcpWriteTools(common.HttpCase):
                 "'kwargs' must be an object.",
             ),
             "kwargs with a string context, early message": (
-                lambda: mixin.call_model_method(
-                    "res.partner", " ", kwargs={"context": "x"}
-                ),
+                lambda: mixin.call_model_method("res.partner", " ", kwargs={"context": "x"}),
                 "No method name provided.",
             ),
             "kwargs with a string context": (
@@ -555,9 +539,7 @@ class TestMcpWriteTools(common.HttpCase):
         """
         from ..models.mcp_tools_write import _json_safe
 
-        partners = self.env["res.partner"].create(
-            [{"name": f"Cap Partner {i}"} for i in range(3)]
-        )
+        partners = self.env["res.partner"].create([{"name": f"Cap Partner {i}"} for i in range(3)])
         serialized = _json_safe(partners, max_records=2)
         # First two records as {id, display_name}, then a truncation marker.
         self.assertEqual(len(serialized), 3)
@@ -634,9 +616,7 @@ class TestMcpWriteTools(common.HttpCase):
         self.assertNotIn("Traceback", text)
         # The blocked update must never have mutated the record.
         self.env.invalidate_all()
-        self.assertEqual(
-            self.env["res.partner"].browse(self.partner.id).name, original_name
-        )
+        self.assertEqual(self.env["res.partner"].browse(self.partner.id).name, original_name)
 
     def test_call_model_method_crud_method_blocked(self):
         """An ORM CRUD method (read) is refused even when method calls are on.
@@ -682,9 +662,7 @@ class TestMcpWriteTools(common.HttpCase):
         self.assertNotIn("Traceback", text)
         # The blocked web_save must never have mutated the record.
         self.env.invalidate_all()
-        self.assertNotEqual(
-            self.env["res.partner"].browse(self.partner.id).ref, "HACKED"
-        )
+        self.assertNotEqual(self.env["res.partner"].browse(self.partner.id).ref, "HACKED")
 
     def test_call_model_method_base_registry_method_blocked(self):
         """``get_views`` (generic API on the ``base`` registry model) is blocked.
@@ -840,9 +818,7 @@ class TestMcpWriteTools(common.HttpCase):
         runs = []
         self._patch_method(partner_cls, "mcp_probe_cls", classmethod(lambda cls: 1))
         self._patch_method(partner_cls, "mcp_probe_static", staticmethod(lambda: 1))
-        self._patch_method(
-            partner_cls, "mcp_probe_prop", property(lambda rec: runs.append(1) or 1)
-        )
+        self._patch_method(partner_cls, "mcp_probe_prop", property(lambda rec: runs.append(1) or 1))
         self._set_method_calls(True)
         for method in ("mcp_probe_cls", "mcp_probe_static", "mcp_probe_prop"):
             with self.subTest(method=method):
@@ -862,11 +838,7 @@ class TestMcpWriteTools(common.HttpCase):
             },
         )
         self.assertFalse(result["isError"], msg=result)
-        message = (
-            self.env["mail.message"]
-            .sudo()
-            .browse(result["structuredContent"]["message_id"])
-        )
+        message = self.env["mail.message"].sudo().browse(result["structuredContent"]["message_id"])
         self.assertEqual(message.message_type, "comment")
         # An exact match wins over a match that ignores case.
         self.assertEqual(mcp._canonical_enum("m", ["M", "m"]), "m")
@@ -969,9 +941,7 @@ class TestMcpWriteTools(common.HttpCase):
 
         self.env.invalidate_all()
         created = self.env["res.partner"].search([("name", "like", marker)])
-        self.assertEqual(
-            sorted(created.ids), sorted(r["id"] for r in structured["records"])
-        )
+        self.assertEqual(sorted(created.ids), sorted(r["id"] for r in structured["records"]))
 
     def test_create_records_single_entry_batch(self):
         """A batch of one is accepted and reports count 1."""
@@ -1014,15 +984,11 @@ class TestMcpWriteTools(common.HttpCase):
     @mute_logger("odoo.sql_db", "odoo.addons.mcp_server.controllers.error_sanitizer")
     def test_unique_violation_is_translated_without_leaking_values(self):
         """A unique constraint failure names the constraint, never the value."""
-        self._enable_model(
-            "base.model_res_partner_bank", allow_read=True, allow_create=True
-        )
+        self._enable_model("base.model_res_partner_bank", allow_read=True, allow_create=True)
         # Odoo 20 renamed the account-number field (acc_number -> account_number);
         # the unique contract (sanitized number + partner) is the same on both.
         Bank = self.env["res.partner.bank"]
-        acc_field = (
-            "account_number" if "account_number" in Bank._fields else "acc_number"
-        )
+        acc_field = "account_number" if "account_number" in Bank._fields else "acc_number"
         acc = "MCP-UNIQUE-%s" % int(time.time() * 1000000)
         result = self._call_tool(
             "create_records",
@@ -1042,9 +1008,7 @@ class TestMcpWriteTools(common.HttpCase):
         self.assertNotIn("Key (", text)
         self.assertNotIn("psycopg2", text)
         self.env.invalidate_all()
-        self.assertFalse(
-            self.env["res.partner.bank"].search([(acc_field, "=", acc)])
-        )
+        self.assertFalse(self.env["res.partner.bank"].search([(acc_field, "=", acc)]))
 
     @mute_logger("odoo.sql_db", "odoo.addons.mcp_server.controllers.error_sanitizer")
     def test_unique_index_violation_is_named_without_leaking(self):
@@ -1057,9 +1021,7 @@ class TestMcpWriteTools(common.HttpCase):
         sanitizer must map that to the fixed unique message, never the generic
         "Internal server error" and never the raw names / values.
         """
-        self._enable_model(
-            "mail.model_mail_notification", allow_read=True, allow_create=True
-        )
+        self._enable_model("mail.model_mail_notification", allow_read=True, allow_create=True)
         message = self.env["mail.message"].create(
             {
                 "model": "res.partner",
@@ -1108,9 +1070,7 @@ class TestMcpWriteTools(common.HttpCase):
 
     def test_create_records_enforces_batch_cap(self):
         """A batch at the configured cap passes; one over is refused."""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.max_batch_size", "2"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.max_batch_size", "2")
         ok = self._call_tool(
             "create_records",
             {
@@ -1182,17 +1142,13 @@ class TestMcpWriteTools(common.HttpCase):
         self.assertNotIn("Traceback", text)
         self.assertNotIn("via MCP", text)
         self.env.invalidate_all()
-        self.assertFalse(
-            self.env["ir.mail_server"].sudo().search([("name", "=", marker)])
-        )
+        self.assertFalse(self.env["ir.mail_server"].sudo().search([("name", "=", marker)]))
 
     # ------------------------------------------------------------------
     # update_records (batch)
     # ------------------------------------------------------------------
     def _make_partners(self, count, marker):
-        return self.env["res.partner"].create(
-            [{"name": f"{marker} {i}"} for i in range(count)]
-        )
+        return self.env["res.partner"].create([{"name": f"{marker} {i}"} for i in range(count)])
 
     def test_update_records_applies_values_to_all(self):
         """One values dict lands on every listed id; the result lists them all."""
@@ -1239,9 +1195,7 @@ class TestMcpWriteTools(common.HttpCase):
         )
         self.assertFalse(dup["isError"], msg=dup)
         self.assertEqual(dup["structuredContent"]["count"], 2)
-        self.assertEqual(
-            [r["id"] for r in dup["structuredContent"]["records"]], partners.ids
-        )
+        self.assertEqual([r["id"] for r in dup["structuredContent"]["records"]], partners.ids)
 
     def _assert_id_coercion_matrix(self, tool, build_args):
         """Shared id-coercion matrix for update_records and call_model_method.
@@ -1315,9 +1269,7 @@ class TestMcpWriteTools(common.HttpCase):
             ("delete_record", {}),
         ):
             with self.subTest(tool):
-                result = self._call_tool(
-                    tool, {"model": "res.partner", "record_id": 1.5, **extra}
-                )
+                result = self._call_tool(tool, {"model": "res.partner", "record_id": 1.5, **extra})
                 self.assertTrue(result["isError"], msg=result)
                 self.assertIn("must be an integer", result["content"][0]["text"])
         self.env.invalidate_all()
@@ -1456,9 +1408,7 @@ class TestMcpWriteTools(common.HttpCase):
 
     def test_update_records_cap_counts_duplicates(self):
         """The cap applies to the raw list, so duplicates cannot bypass it."""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.max_batch_size", "2"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.max_batch_size", "2")
         result = self._call_tool(
             "update_records",
             {
@@ -1524,9 +1474,7 @@ class TestMcpWriteTools(common.HttpCase):
                 "update_records",
                 {
                     "model": "res.partner",
-                    "updates": [
-                        {"id": partner.id, "values": {"ref": "x", "no_such_field": 1}}
-                    ],
+                    "updates": [{"id": partner.id, "values": {"ref": "x", "no_such_field": 1}}],
                 },
             ),
         )
@@ -1623,9 +1571,7 @@ class TestMcpWriteTools(common.HttpCase):
                 self.assertNotIn("Traceback", text)
 
     def test_update_records_each_cap(self):
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.max_batch_size", "2"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.max_batch_size", "2")
         partners = self._make_partners(3, "MCP Each Cap")
         result = self._call_tool(
             "update_records",
@@ -1653,12 +1599,8 @@ class TestMcpWriteTools(common.HttpCase):
         self.assertIn("not both", both["content"][0]["text"])
         neither = self._call_tool("update_records", {"model": "res.partner"})
         self.assertTrue(neither["isError"], msg=neither)
-        self.assertIn(
-            "Pass 'record_ids' + 'values', or 'updates'", neither["content"][0]["text"]
-        )
-        half = self._call_tool(
-            "update_records", {"model": "res.partner", "record_ids": [pid]}
-        )
+        self.assertIn("Pass 'record_ids' + 'values', or 'updates'", neither["content"][0]["text"])
+        half = self._call_tool("update_records", {"model": "res.partner", "record_ids": [pid]})
         self.assertTrue(half["isError"], msg=half)
         self.assertIn("No values", half["content"][0]["text"])
 
@@ -1707,8 +1649,7 @@ class TestMcpWriteTools(common.HttpCase):
             {
                 "model": "res.partner",
                 # Python-literal form (single quotes), as some clients emit
-                "updates": "[{'id': %s, 'values': {'ref': 'str-each'}}]"
-                % partners[0].id,
+                "updates": "[{'id': %s, 'values': {'ref': 'str-each'}}]" % partners[0].id,
             },
         )
         self.assertFalse(each["isError"], msg=each)
@@ -1722,9 +1663,7 @@ class TestMcpWriteTools(common.HttpCase):
             ("object json", {"records": '{"name": "x"}'}, "non-empty list"),
         ):
             with self.subTest(label):
-                result = self._call_tool(
-                    "create_records", {"model": "res.partner", **args}
-                )
+                result = self._call_tool("create_records", {"model": "res.partner", **args})
                 self.assertTrue(result["isError"], msg=(label, result))
                 self.assertIn(needle, result["content"][0]["text"])
 
@@ -1771,9 +1710,7 @@ class TestMcpWriteTools(common.HttpCase):
                 ("user_id", "=", self.mcp_user.id),
             ]
         )
-        self.assertTrue(
-            success_rows, "expected a model_access audit row for the successful create"
-        )
+        self.assertTrue(success_rows, "expected a model_access audit row for the successful create")
 
         # The blocked create is an authorization denial (the per-model gate
         # raises AccessError), so it is audited as permission_denied WITH auth
@@ -1799,9 +1736,7 @@ class TestMcpWriteTools(common.HttpCase):
                 ("user_id", "=", self.mcp_user.id),
             ]
         )
-        self.assertFalse(
-            e500_rows, "the blocked create must not also be logged as an E500 error"
-        )
+        self.assertFalse(e500_rows, "the blocked create must not also be logged as an E500 error")
 
     def test_audit_records_ids_and_real_method_name(self):
         """A write logs its record_ids; call_model_method logs the real method."""
@@ -1915,9 +1850,7 @@ class TestMcpWriteTools(common.HttpCase):
         self.assertFalse(updated["isError"], msg=updated)
 
         self.env.invalidate_all()
-        self.assertEqual(
-            log_model.search_count([("user_id", "=", self.mcp_user.id)]), before + 2
-        )
+        self.assertEqual(log_model.search_count([("user_id", "=", self.mcp_user.id)]), before + 2)
 
         create_row = self._latest_success_row("create")
         self.assertEqual(create_row.tool_name, "create_records")
@@ -1929,9 +1862,7 @@ class TestMcpWriteTools(common.HttpCase):
         self.assertEqual(write_row.tool_name, "update_records")
         self.assertEqual(write_row.record_ids, ",".join(map(str, partners.ids)))
         self.assertEqual(write_row.response_data, "2 records")
-        self.assertEqual(
-            write_row.request_data, "model, record_ids, values, batch_size=3"
-        )
+        self.assertEqual(write_row.request_data, "model, record_ids, values, batch_size=3")
 
     @mute_logger("odoo.sql_db", "odoo.addons.mcp_server.controllers.error_sanitizer")
     def test_audit_batch_error_leaves_error_row_only(self):
@@ -2005,15 +1936,11 @@ class TestMcpWriteTools(common.HttpCase):
         rate_limiting._api_limiter.clear()
         uid = self.mcp_user.id
         dbname = self.env.cr.dbname
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.request_limit", "11"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.request_limit", "11")
 
         mock_request = MagicMock()
         mock_request.env = self.env
-        with patch(
-            "odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.rate_limiting.request", mock_request):
             for _ in range(10):
                 rate_limiting.record_api_request(uid, dbname)
             # 10 recorded requests stay under the limit of 11.
@@ -2105,9 +2032,7 @@ class TestMcpWriteTools(common.HttpCase):
                         "model": "res.partner",
                         "values": {
                             "name": marker,
-                            "child_ids": [
-                                [0, 0, {"name": "child", "country_id": 999999999}]
-                            ],
+                            "child_ids": [[0, 0, {"name": "child", "country_id": 999999999}]],
                         },
                     },
                 },

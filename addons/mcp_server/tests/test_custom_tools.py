@@ -131,9 +131,7 @@ class TestCustomToolsModel(common.TransactionCase):
     def test_schema_type_not_object_raises(self):
         """An input_schema whose 'type' is not 'object' is rejected."""
         with self.assertRaises(ValidationError):
-            self._make_tool(
-                name="echo_stringtype", input_schema='{"type": "string"}'
-            )
+            self._make_tool(name="echo_stringtype", input_schema='{"type": "string"}')
 
     def test_required_not_a_list_raises(self):
         """An input_schema whose 'required' is not a list is rejected.
@@ -223,9 +221,7 @@ class TestCustomTools(common.HttpCase):
         partner_mgr = self.env.ref("base.group_partner_manager")
 
         # The action's Allowed Group -- membership is the access gate.
-        self.tool_group = self.env["res.groups"].create(
-            {"name": f"MCP Tool Group {unique_id}"}
-        )
+        self.tool_group = self.env["res.groups"].create({"name": f"MCP Tool Group {unique_id}"})
 
         # user_in: in the tool group AND has res.partner write (partner manager).
         self.user_in = create_test_user(
@@ -233,11 +229,7 @@ class TestCustomTools(common.HttpCase):
             "MCP Custom In",
             f"mcp_custom_in_{unique_id}",
             email=f"mcp_custom_in_{unique_id}@example.com",
-            **{
-                groups_field: [
-                    (6, 0, [internal.id, partner_mgr.id, self.tool_group.id])
-                ]
-            },
+            **{groups_field: [(6, 0, [internal.id, partner_mgr.id, self.tool_group.id])]},
         )
         grant_mcp_access(self.user_in)
         self.key_in = self._mint_key(self.user_in, "Custom In Key")
@@ -388,9 +380,7 @@ class TestCustomTools(common.HttpCase):
 
     def _call_tool(self, token, name, arguments=None):
         """Invoke ``tools/call`` over ``token`` and return the tool-result dict."""
-        response = self._rpc(
-            token, "tools/call", {"name": name, "arguments": arguments or {}}
-        )
+        response = self._rpc(token, "tools/call", {"name": name, "arguments": arguments or {}})
         self.assertEqual(response.status_code, 200, response.text[:500])
         payload = response.json()
         self.assertNotIn("error", payload, msg=payload.get("error"))
@@ -422,15 +412,11 @@ class TestCustomTools(common.HttpCase):
         # tools/call round-trips {"x": ...} -> result JSON {"echo": ...} in text.
         result = self._call_tool(self.key_in, "echo_grouped", {"x": "hello"})
         self.assertFalse(result["isError"], msg=result)
-        self.assertEqual(
-            json.loads(result["content"][0]["text"]), {"echo": "hello"}
-        )
+        self.assertEqual(json.loads(result["content"][0]["text"]), {"echo": "hello"})
         # A custom schema without ``additionalProperties: false`` keeps
         # accepting undeclared keys (they travel in mcp['args']); the
         # unknown-argument check only enforces what a schema declares.
-        result = self._call_tool(
-            self.key_in, "echo_grouped", {"x": "hello", "extra": 1}
-        )
+        result = self._call_tool(self.key_in, "echo_grouped", {"x": "hello", "extra": 1})
         self.assertFalse(result["isError"], msg=result)
 
     def test_custom_tool_strict_schema_rejects_unknown_arg(self):
@@ -448,9 +434,7 @@ class TestCustomTools(common.HttpCase):
                 }
             ),
         )
-        result = self._call_tool(
-            self.key_in, "echo_strict", {"x": "hello", "extra": 1}
-        )
+        result = self._call_tool(self.key_in, "echo_strict", {"x": "hello", "extra": 1})
         self.assertTrue(result["isError"], msg=result)
         self.assertIn("Unknown argument(s): extra", result["content"][0]["text"])
         result = self._call_tool(self.key_in, "echo_strict", {"x": "hello"})
@@ -513,8 +497,7 @@ class TestCustomTools(common.HttpCase):
             ),
             "items.type": (
                 {"n": 1, "tags": ["x", 2]},
-                "Invalid argument 'tags': must be a list of strings; item 1 is an "
-                "integer.",
+                "Invalid argument 'tags': must be a list of strings; item 1 is an integer.",
             ),
             "union": (
                 {"n": 1, "note": 5},
@@ -528,9 +511,7 @@ class TestCustomTools(common.HttpCase):
                 self.assertTrue(result["isError"], msg=result)
                 self.assertEqual(result["content"][0]["text"], message)
                 self.env.invalidate_all()
-                row = log_model.search(
-                    [("operation", "=", "typed_tool")], order="id desc", limit=1
-                )
+                row = log_model.search([("operation", "=", "typed_tool")], order="id desc", limit=1)
                 self.assertEqual(row.error_code, "E400")
                 self.assertEqual(row.error_message, message)
 
@@ -568,9 +549,7 @@ class TestCustomTools(common.HttpCase):
             ),
         )
         with mute_logger("odoo.addons.mcp_server.controllers.mcp"):
-            result = self._call_tool(
-                self.key_in, "odd_schema_tool", {"x": [1], "y": "a", "z": [2]}
-            )
+            result = self._call_tool(self.key_in, "odd_schema_tool", {"x": [1], "y": "a", "z": [2]})
         self.assertFalse(result["isError"], msg=result)
         self.assertEqual(json.loads(result["content"][0]["text"]), {"echo": [1]})
 
@@ -608,9 +587,7 @@ class TestCustomTools(common.HttpCase):
         write access the fallback requires, which is core's own gate semantics
         (``_can_execute_action_on_records``), not an MCP escalation.
         """
-        self.assertNotIn(
-            "echo_nogroup_norights", self._list_tool_names(self.key_out)
-        )
+        self.assertNotIn("echo_nogroup_norights", self._list_tool_names(self.key_out))
         result = self._call_tool(self.key_out, "echo_nogroup_norights", {"x": "no"})
         self.assertTrue(result["isError"], msg=result)
         self.assertIn("not allowed", result["content"][0]["text"].lower())
@@ -740,9 +717,7 @@ class TestCustomTools(common.HttpCase):
 
         allowed = self._call_tool(token, "echo_readonly", {"x": "yes"})
         self.assertFalse(allowed["isError"], msg=allowed)
-        self.assertEqual(
-            json.loads(allowed["content"][0]["text"]), {"echo": "yes"}
-        )
+        self.assertEqual(json.loads(allowed["content"][0]["text"]), {"echo": "yes"})
 
     # ------------------------------------------------------------------
     # Audit: a custom-tool call writes an mcp.log row (operation = tool name)
@@ -853,9 +828,7 @@ class TestCustomTools(common.HttpCase):
 
         self.assertNotIn("echo_inactive", self._list_tool_names(self.key_in))
 
-        resp = self._rpc(
-            self.key_in, "tools/call", {"name": "echo_inactive", "arguments": {}}
-        )
+        resp = self._rpc(self.key_in, "tools/call", {"name": "echo_inactive", "arguments": {}})
         self.assertEqual(resp.status_code, 200, resp.text[:500])
         payload = resp.json()
         self.assertIn("error", payload, msg=payload)
@@ -966,9 +939,7 @@ class TestCustomTools(common.HttpCase):
         every internal user res.partner write, so a res.partner fallback tool is
         genuinely visible to user_out there.)
         """
-        visible = (
-            self.env["mcp.custom.tool"].with_user(self.user_out)._visible_tools()
-        )
+        visible = self.env["mcp.custom.tool"].with_user(self.user_out)._visible_tools()
         names = visible.mapped("name")
         # user_out is not in the tool group and has no write access to
         # ir.config_parameter, so both must stay hidden.
@@ -1062,9 +1033,7 @@ class TestCustomTools(common.HttpCase):
                 ]
             )
         )
-        self.assertFalse(
-            e500, "the denial must not be logged as a generic E500 error row"
-        )
+        self.assertFalse(e500, "the denial must not be logged as a generic E500 error row")
 
     # ------------------------------------------------------------------
     # Defensive guard: a corrupted `required` (raw-SQL row, bypassing the
@@ -1096,9 +1065,7 @@ class TestCustomTools(common.HttpCase):
         result = self._call_tool(self.key_in, "echo_corrupt_required", {"x": "hi"})
         # NOT a -32603 crash: a normal isError=False result that round-trips.
         self.assertFalse(result["isError"], msg=result)
-        self.assertEqual(
-            json.loads(result["content"][0]["text"]), {"echo": "hi"}
-        )
+        self.assertEqual(json.loads(result["content"][0]["text"]), {"echo": "hi"})
 
         # Invariant restored: the call still writes its mcp.log audit row.
         self.env.invalidate_all()

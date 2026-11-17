@@ -26,9 +26,7 @@ class McpEnabledModel(models.Model):
         help="Indicates whether this model is enabled for MCP access",
     )
     allow_read = fields.Boolean(default=True, help="Allow read operations through MCP")
-    allow_create = fields.Boolean(
-        default=False, help="Allow create operations through MCP"
-    )
+    allow_create = fields.Boolean(default=False, help="Allow create operations through MCP")
     allow_write = fields.Boolean(
         string="Allow Update", default=False, help="Allow update operations through MCP"
     )
@@ -165,9 +163,7 @@ class McpEnabledModel(models.Model):
             .get_str("mcp_server.allowed_origins", "")
         )
         return tuple(
-            entry.strip().rstrip("/").lower()
-            for entry in (raw or "").split(",")
-            if entry.strip()
+            entry.strip().rstrip("/").lower() for entry in (raw or "").split(",") if entry.strip()
         )
 
     @api.model
@@ -194,9 +190,7 @@ class McpEnabledModel(models.Model):
         is cleared cross-worker by ``_invalidate_mcp_caches`` on any config
         change.
         """
-        record = self.search(
-            [("model_name", "=", model_name), ("active", "=", True)], limit=1
-        )
+        record = self.search([("model_name", "=", model_name), ("active", "=", True)], limit=1)
         return bool(record)
 
     @api.model
@@ -204,13 +198,9 @@ class McpEnabledModel(models.Model):
     def check_model_operation_enabled(self, model_name, operation):
         """Check if a specific operation is enabled for a model (``@ormcache``-d)."""
         if operation not in ["read", "create", "write", "unlink"]:
-            raise ValidationError(
-                _("Invalid operation: %(operation)s", operation=operation)
-            )
+            raise ValidationError(_("Invalid operation: %(operation)s", operation=operation))
 
-        record = self.search(
-            [("model_name", "=", model_name), ("active", "=", True)], limit=1
-        )
+        record = self.search([("model_name", "=", model_name), ("active", "=", True)], limit=1)
 
         if not record:
             return False
@@ -225,7 +215,5 @@ class McpEnabledModel(models.Model):
         True only when the model is enabled AND its ``allow_method_calls``
         opt-in flag is set. Cleared cross-worker like the sibling gate methods.
         """
-        record = self.search(
-            [("model_name", "=", model_name), ("active", "=", True)], limit=1
-        )
+        record = self.search([("model_name", "=", model_name), ("active", "=", True)], limit=1)
         return bool(record and record.allow_method_calls)

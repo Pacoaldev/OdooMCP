@@ -75,12 +75,9 @@ class IrHttp(models.AbstractModel):
                 # A request with NO Authorization header is the normal RFC 9728
                 # discovery probe (the client expects the 401 challenge to locate
                 # the authorization server), so it is deliberately not logged.
-                auth._log_auth_failure(
-                    "Malformed Authorization header", api_key_used=False
-                )
+                auth._log_auth_failure("Malformed Authorization header", api_key_used=False)
             raise cls._mcp_unauthorized(
-                "Missing credentials; provide an "
-                "'Authorization: Bearer <token>' header."
+                "Missing credentials; provide an 'Authorization: Bearer <token>' header."
             )
 
         # Front door 1: mcp- or rpc-scope API key. This is the only caller that
@@ -88,9 +85,7 @@ class IrHttp(models.AbstractModel):
         # key stays confined to ``/mcp``. Suppress its failure audit row: an OAuth
         # access token is not an API key and would log a spurious failure before
         # the OAuth door below succeeds; a genuine failure is logged once at the end.
-        user = auth.get_user_from_api_key(
-            token, allowed_scopes=("mcp", "rpc"), log_failure=False
-        )
+        user = auth.get_user_from_api_key(token, allowed_scopes=("mcp", "rpc"), log_failure=False)
         if user:
             if not auth.user_has_mcp_access(user):
                 raise cls._mcp_group_forbidden(user, api_key_used=True)
@@ -139,11 +134,7 @@ class IrHttp(models.AbstractModel):
         if match:
             return match.group(1)
         bare = header.strip()
-        if (
-            bare
-            and not re.search(r"\s", bare)
-            and bare.lower() not in _AUTH_SCHEME_NAMES
-        ):
+        if bare and not re.search(r"\s", bare) and bare.lower() not in _AUTH_SCHEME_NAMES:
             return bare
         return None
 

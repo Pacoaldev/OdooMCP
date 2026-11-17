@@ -42,12 +42,11 @@ class McpOauthClientSecretWizard(models.TransientModel):
     )
     redirect_uris = fields.Text(
         string="Redirect URIs",
-        help="One URI per line. Use https, or http only for 127.0.0.1 or " "localhost.",
+        help="One URI per line. Use https, or http only for 127.0.0.1 or localhost.",
     )
     scope = fields.Char(
         default="mcp",
-        help="Space-separated scopes the client may request: mcp, mcp:read or "
-        "mcp:write.",
+        help="Space-separated scopes the client may request: mcp, mcp:read or mcp:write.",
     )
 
     def _ensure_mcp_admin(self):
@@ -57,9 +56,7 @@ class McpOauthClientSecretWizard(models.TransientModel):
         the real user before any sudo(), as ``mcp.oauth.client`` does.
         """
         if not self.env.user.has_group("mcp_server.group_mcp_admin"):
-            raise AccessError(
-                _("Only MCP administrators may manage OAuth client secrets.")
-            )
+            raise AccessError(_("Only MCP administrators may manage OAuth client secrets."))
 
     @check_identity
     def action_create(self):
@@ -86,9 +83,7 @@ class McpOauthClientSecretWizard(models.TransientModel):
                 )
             )
         if not uris or len(uris) > _MAX_REDIRECT_URIS:
-            raise UserError(
-                _("Enter 1 to %s redirect URIs, one per line.", _MAX_REDIRECT_URIS)
-            )
+            raise UserError(_("Enter 1 to %s redirect URIs, one per line.", _MAX_REDIRECT_URIS))
         for uri in uris:
             if len(uri) > _MAX_REDIRECT_URI_LENGTH or not _is_allowed_redirect_uri(uri):
                 raise UserError(

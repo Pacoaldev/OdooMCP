@@ -101,9 +101,7 @@ class TestMcpSecurity(common.TransactionCase):
                     }
                 )
             )
-            self.assertTrue(
-                new_model.id, "Admin should be able to create MCP enabled models"
-            )
+            self.assertTrue(new_model.id, "Admin should be able to create MCP enabled models")
 
             enabled_model.with_user(self.mcp_admin).write({"allow_create": True})
             self.assertTrue(
@@ -168,9 +166,7 @@ class TestMcpSecurity(common.TransactionCase):
     def _a_client(self):
         """Create an OAuth client as sudo (the AS provisions these, not admins)."""
         return (
-            self.env["mcp.oauth.client"]
-            .sudo()
-            .create({"client_id": "test-client", "active": True})
+            self.env["mcp.oauth.client"].sudo().create({"client_id": "test-client", "active": True})
         )
 
     def test_mcp_admin_cannot_forge_oauth_token(self):
@@ -348,14 +344,10 @@ class TestMcpSecurity(common.TransactionCase):
         Tool = self.env["mcp.custom.tool"]
 
         # Read is now admin-only: a non-admin has no direct read on the model.
-        with self.assertRaises(
-            AccessError, msg="non-admin must not read a custom tool"
-        ):
+        with self.assertRaises(AccessError, msg="non-admin must not read a custom tool"):
             Tool.with_user(self.regular_user).search([])
 
-        with self.assertRaises(
-            AccessError, msg="non-admin must not create a custom tool"
-        ):
+        with self.assertRaises(AccessError, msg="non-admin must not create a custom tool"):
             Tool.with_user(self.regular_user).create(
                 {
                     "name": "sec_denied_create",
@@ -373,13 +365,9 @@ class TestMcpSecurity(common.TransactionCase):
                 "action_id": action.id,
             }
         )
-        with self.assertRaises(
-            AccessError, msg="non-admin must not write a custom tool"
-        ):
+        with self.assertRaises(AccessError, msg="non-admin must not write a custom tool"):
             tool.with_user(self.regular_user).write({"description": "changed"})
-        with self.assertRaises(
-            AccessError, msg="non-admin must not unlink a custom tool"
-        ):
+        with self.assertRaises(AccessError, msg="non-admin must not unlink a custom tool"):
             tool.with_user(self.regular_user).unlink()
 
     def test_delegated_admin_crud_grants_no_execution_capability(self):
@@ -407,9 +395,7 @@ class TestMcpSecurity(common.TransactionCase):
                 "model_id": self.env.ref("base.model_res_partner").id,
                 "state": "code",
                 "code": "mcp['result'] = {'ok': True}",
-                "group_ids": [
-                    (6, 0, [self.env.ref("mcp_server.group_mcp_admin").id])
-                ],
+                "group_ids": [(6, 0, [self.env.ref("mcp_server.group_mcp_admin").id])],
             }
         )
 

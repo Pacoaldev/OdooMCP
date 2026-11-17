@@ -70,9 +70,7 @@ class TestMcpUtils(common.TransactionCase):
         # Ensure res.users is NOT MCP-enabled for testing
         users_model_id = self.env.ref("base.model_res_users").id
         existing_users_model = (
-            self.env["mcp.enabled.model"]
-            .sudo()
-            .search([("model_id", "=", users_model_id)])
+            self.env["mcp.enabled.model"].sudo().search([("model_id", "=", users_model_id)])
         )
         if existing_users_model:
             existing_users_model.sudo().unlink()
@@ -98,9 +96,7 @@ class TestMcpUtils(common.TransactionCase):
             # Force the underlying param read to report False WITHOUT going
             # through set_str (which would itself invalidate the ORM caches):
             # the primed True is still served, proving it is cached, not re-read.
-            with patch.object(
-                type(params), "get_bool", return_value=False
-            ):
+            with patch.object(type(params), "get_bool", return_value=False):
                 self.assertTrue(utils.is_mcp_enabled())
 
                 # clear_mcp_caches flushes the ormcache -> the next call re-reads
@@ -142,16 +138,12 @@ class TestMcpUtils(common.TransactionCase):
 
         with patch("odoo.addons.mcp_server.controllers.utils.request", mock_request):
             # Test when enabled
-            self.env["ir.config_parameter"].sudo().set_str(
-                "mcp_server.enabled", "True"
-            )
+            self.env["ir.config_parameter"].sudo().set_str("mcp_server.enabled", "True")
             utils.clear_mcp_caches()
             self.assertTrue(utils.is_mcp_enabled())
 
             # Test when disabled
-            self.env["ir.config_parameter"].sudo().set_str(
-                "mcp_server.enabled", "False"
-            )
+            self.env["ir.config_parameter"].sudo().set_str("mcp_server.enabled", "False")
             utils.clear_mcp_caches()
             self.assertFalse(utils.is_mcp_enabled())
 
@@ -177,18 +169,10 @@ class TestMcpUtils(common.TransactionCase):
 
         with patch("odoo.addons.mcp_server.controllers.utils.request", mock_request):
             # Test allowed operations on res.partner
-            self.assertTrue(
-                utils.check_model_operation_allowed(self.env, "res.partner", "read")
-            )
-            self.assertTrue(
-                utils.check_model_operation_allowed(self.env, "res.partner", "create")
-            )
-            self.assertFalse(
-                utils.check_model_operation_allowed(self.env, "res.partner", "write")
-            )
-            self.assertFalse(
-                utils.check_model_operation_allowed(self.env, "res.partner", "unlink")
-            )
+            self.assertTrue(utils.check_model_operation_allowed(self.env, "res.partner", "read"))
+            self.assertTrue(utils.check_model_operation_allowed(self.env, "res.partner", "create"))
+            self.assertFalse(utils.check_model_operation_allowed(self.env, "res.partner", "write"))
+            self.assertFalse(utils.check_model_operation_allowed(self.env, "res.partner", "unlink"))
 
             # Test invalid operation
             self.assertFalse(
@@ -270,9 +254,7 @@ class TestMcpUtils(common.TransactionCase):
             self.assertFalse(utils.check_mcp_access(self.env, "res.partner", "unlink"))
 
             # Private method
-            self.assertFalse(
-                utils.check_mcp_access(self.env, "res.partner", "_private_method")
-            )
+            self.assertFalse(utils.check_mcp_access(self.env, "res.partner", "_private_method"))
 
             # Non-existent model
             self.assertFalse(utils.check_mcp_access(self.env, "fake.model", "search"))
@@ -352,9 +334,7 @@ class TestMcpUtils(common.TransactionCase):
             self.env.registry.clear_cache()
             self.assertTrue(utils.is_mcp_enabled())
             self.assertTrue(utils.is_oauth_enabled(self.env))
-            self.assertEqual(
-                utils.get_allowed_origins(), ("https://a.example.com",)
-            )
+            self.assertEqual(utils.get_allowed_origins(), ("https://a.example.com",))
 
             # Flip every switch and invalidate exactly the way the write path does.
             params.set_str("mcp_server.enabled", "False")
@@ -363,9 +343,7 @@ class TestMcpUtils(common.TransactionCase):
             self.env.registry.clear_cache()
             self.assertFalse(utils.is_mcp_enabled())
             self.assertFalse(utils.is_oauth_enabled(self.env))
-            self.assertEqual(
-                utils.get_allowed_origins(), ("https://b.example.com",)
-            )
+            self.assertEqual(utils.get_allowed_origins(), ("https://b.example.com",))
 
 
 # Separate test class for auth and response utils functions
@@ -404,9 +382,10 @@ class TestAuthAndResponseUtils(common.TransactionCase):
         # Patch ``request`` in both auth and audit: the invalid-key path writes an
         # auth-failure row via audit.write_audit_row, which reads its own module's
         # ``request`` proxy.
-        with patch(
-            "odoo.addons.mcp_server.controllers.auth.request", mock_request
-        ), patch("odoo.addons.mcp_server.controllers.audit.request", mock_request):
+        with (
+            patch("odoo.addons.mcp_server.controllers.auth.request", mock_request),
+            patch("odoo.addons.mcp_server.controllers.audit.request", mock_request),
+        ):
             # Valid key
             user = self.auth.get_user_from_api_key(self.valid_api_key)
             self.assertEqual(user.id, self.test_user.id)
@@ -448,26 +427,22 @@ class TestAuthAndResponseUtils(common.TransactionCase):
         def _endpoint(**kwargs):
             return "reached-handler"
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.auth.request", mock_request
-        ), patch.object(
-            self.auth, "validate_api_key", return_value=None
-        ), patch.object(
-            self.auth, "get_user_from_session", return_value=None
-        ), patch.object(
-            self.auth, "_log_auth_failure"
-        ) as mock_log, patch(
-            "odoo.addons.mcp_server.controllers.response_utils.error_response",
-            return_value="401",
+        with (
+            patch("odoo.addons.mcp_server.controllers.auth.request", mock_request),
+            patch.object(self.auth, "validate_api_key", return_value=None),
+            patch.object(self.auth, "get_user_from_session", return_value=None),
+            patch.object(self.auth, "_log_auth_failure") as mock_log,
+            patch(
+                "odoo.addons.mcp_server.controllers.response_utils.error_response",
+                return_value="401",
+            ),
         ):
             result = _endpoint()
 
         # Handler not reached (401 returned) and the failure logged through the
         # throttled helper -- not written directly to mcp.log.
         self.assertEqual(result, "401")
-        mock_log.assert_called_once_with(
-            "No valid API key or session", api_key_used=False
-        )
+        mock_log.assert_called_once_with("No valid API key or session", api_key_used=False)
 
     def test_get_timestamp(self):
         """Test timestamp generation"""
@@ -483,9 +458,7 @@ class TestAuthAndResponseUtils(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.make_json_response = MagicMock()
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.response_utils.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.response_utils.request", mock_request):
             self.response_utils.success_response(test_data)
 
             mock_request.make_json_response.assert_called_once()
@@ -500,9 +473,7 @@ class TestAuthAndResponseUtils(common.TransactionCase):
         mock_request = MagicMock()
         mock_request.make_json_response = MagicMock()
 
-        with patch(
-            "odoo.addons.mcp_server.controllers.response_utils.request", mock_request
-        ):
+        with patch("odoo.addons.mcp_server.controllers.response_utils.request", mock_request):
             self.response_utils.error_response("Test error", "E400", 400)
 
             mock_request.make_json_response.assert_called_once()

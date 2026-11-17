@@ -20,9 +20,7 @@ class TestMCPLogging(TransactionCase):
         self.test_user = create_test_user(
             self.env, "Test MCP User", "test_mcp_user", email="test_mcp@example.com"
         )
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.enable_logging", "True"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.enable_logging", "True")
 
     def _backdate_log(self, log, when):
         """Force a log's create_date to ``when``.
@@ -164,18 +162,14 @@ class TestMCPLogging(TransactionCase):
         log = (
             self.env["mcp.log"]
             .sudo()
-            .log_event(
-                "auth_success", user_id=self.test_user.id, ip_address="10.9.8.7"
-            )
+            .log_event("auth_success", user_id=self.test_user.id, ip_address="10.9.8.7")
         )
         self.assertTrue(log)
         self.assertEqual(log.event_type, "auth_success")
 
     def test_logging_disabled(self):
         """Test that logging is skipped when disabled."""
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.enable_logging", "False"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.enable_logging", "False")
 
         log = self.MCPLog.log_event(
             "auth_success", user_id=self.test_user.id, ip_address="192.168.1.1"
@@ -266,9 +260,7 @@ class TestMCPLogging(TransactionCase):
         """Test cleanup using config parameter for retention days."""
         self._clear_logs()
         # Set retention to 7 days in config
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.log_retention_days", "7"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.log_retention_days", "7")
 
         old_log = self.MCPLog.create({"event_type": "auth_success"})
         self._backdate_log(old_log, datetime.now() - timedelta(days=10))
@@ -319,9 +311,7 @@ class TestMCPLogging(TransactionCase):
 
     def test_log_creation_error_handling(self):
         """Test that log creation errors are handled gracefully."""
-        with patch.object(
-            type(self.MCPLog), "create", side_effect=Exception("Database error")
-        ):
+        with patch.object(type(self.MCPLog), "create", side_effect=Exception("Database error")):
             # Should not raise exception, just return empty recordset
             log = self.MCPLog.log_event("auth_success", user_id=self.test_user.id)
             self.assertFalse(log)
@@ -349,9 +339,7 @@ class TestMCPLogging(TransactionCase):
         # A user_id past every res.users id violates the mcp_log FK when the row
         # is INSERTed -- a genuine database error, not a pre-flight Python one.
         bad_user_id = 2147483000
-        with mute_logger(
-            "odoo.addons.mcp_server.models.mcp_log", "odoo.sql_db"
-        ):
+        with mute_logger("odoo.addons.mcp_server.models.mcp_log", "odoo.sql_db"):
             result = self.MCPLog.log_event(
                 "model_access",
                 user_id=bad_user_id,
@@ -377,9 +365,7 @@ class TestMCPLogging(TransactionCase):
 
     def test_json_data_fields(self):
         """Test storing JSON data in request/response fields."""
-        request_data = (
-            '{"method": "search", "params": {"domain": [["active", "=", true]]}}'
-        )
+        request_data = '{"method": "search", "params": {"domain": [["active", "=", true]]}}'
         response_data = '{"result": [1, 2, 3], "count": 3}'
 
         log = self.MCPLog.log_event(

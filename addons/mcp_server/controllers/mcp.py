@@ -59,9 +59,7 @@ _BATCH_WRITE_TOOLS = frozenset({"create_records", "update_records"})
 
 # Attachment tools: their audit ``model`` column defaults to ``ir.attachment``
 # when the call names no model (a ``odoo://record/...`` URI names its own).
-_ATTACHMENT_TOOLS = frozenset(
-    {"read_attachment", "list_record_attachments", "upload_attachment"}
-)
+_ATTACHMENT_TOOLS = frozenset({"read_attachment", "list_record_attachments", "upload_attachment"})
 
 
 # Builtin-tool arguments the tool coerces and checks itself, with its own
@@ -170,9 +168,7 @@ def _in_enum(value, options):
     """
     if isinstance(value, str):
         value = value.strip().lower()
-        return any(
-            isinstance(option, str) and option.lower() == value for option in options
-        )
+        return any(isinstance(option, str) and option.lower() == value for option in options)
     return any(
         option == value and isinstance(option, bool) == isinstance(value, bool)
         for option in options
@@ -240,8 +236,7 @@ def _enum_violation(key, schema, value):
         "Invalid argument '%(name)s': must be one of %(options)s.",
         name=key,
         options=", ".join(
-            option if isinstance(option, str) else json.dumps(option)
-            for option in options
+            option if isinstance(option, str) else json.dumps(option) for option in options
         ),
     )
 
@@ -254,18 +249,14 @@ def _list_violation(key, schema, value):
     if isinstance(min_items, int) and not isinstance(min_items, bool):
         if len(value) < min_items:
             if min_items == 1:
-                return _(
-                    "Invalid argument '%(name)s': must be a non-empty list.", name=key
-                )
+                return _("Invalid argument '%(name)s': must be a non-empty list.", name=key)
             return _(
                 "Invalid argument '%(name)s': must contain at least %(count)s items.",
                 name=key,
                 count=min_items,
             )
     items = schema.get("items")
-    item_types = (
-        _schema_types(items, _JSON_ITEM_LABELS) if isinstance(items, dict) else None
-    )
+    item_types = _schema_types(items, _JSON_ITEM_LABELS) if isinstance(items, dict) else None
     if item_types is None:
         return None
     for index, item in enumerate(value):
@@ -621,8 +612,7 @@ class MCPController(http.Controller):
                 # must not break tools/list for every user who can see this
                 # tool: log it and skip the single bad row.
                 _logger.warning(
-                    "Skipping custom tool '%s' in tools/list: malformed "
-                    "input_schema.",
+                    "Skipping custom tool '%s' in tools/list: malformed input_schema.",
                     custom.name,
                 )
                 continue
@@ -652,9 +642,7 @@ class MCPController(http.Controller):
         required = input_schema.get("required", [])
         if not isinstance(required, list):
             required = []
-        return [
-            key for key in required if isinstance(key, str) and key not in arguments
-        ]
+        return [key for key in required if isinstance(key, str) and key not in arguments]
 
     @staticmethod
     def _unknown_args(input_schema, arguments):
@@ -684,9 +672,7 @@ class MCPController(http.Controller):
         """
         missing = cls._missing_required_args(input_schema, arguments)
         if missing:
-            return _(
-                "Missing required argument(s): %(fields)s", fields=", ".join(missing)
-            )
+            return _("Missing required argument(s): %(fields)s", fields=", ".join(missing))
         unknown = cls._unknown_args(input_schema, arguments)
         if unknown:
             return _(
@@ -745,9 +731,7 @@ class MCPController(http.Controller):
         # name there is no tool to attribute an isError result to, so
         # _audit_rejected_call logs an E400 row and raises a clean -32602.
         if not isinstance(name, str) or not name:
-            self._audit_rejected_call(
-                name, _("Invalid params: 'name' must be a non-empty string.")
-            )
+            self._audit_rejected_call(name, _("Invalid params: 'name' must be a non-empty string."))
 
         index = request.env["mcp.mixin"]._get_mcp_tools()
         meta = index.get(name)
@@ -912,9 +896,7 @@ class MCPController(http.Controller):
                 # argument list can differ after dedupe, and created ids do not
                 # exist before the call -- so both derive from the same source.
                 record_ids = self._batch_touched_ids(name, result, record_ids)
-                response_summary = self._audit_response_summary(
-                    name, result, record_ids
-                )
+                response_summary = self._audit_response_summary(name, result, record_ids)
             except (ValueError, TypeError) as err:
                 # A tool raising ValueError/TypeError -- either a wrong-typed
                 # argument (record_id="abc" -> int("abc")) or an ORM coercion
@@ -1250,9 +1232,7 @@ class MCPController(http.Controller):
         if not isinstance(rows, list):
             return None
         ids = [
-            row["id"]
-            for row in rows
-            if isinstance(row, dict) and isinstance(row.get("id"), int)
+            row["id"] for row in rows if isinstance(row, dict) and isinstance(row.get("id"), int)
         ]
         return ids or None
 
@@ -1429,9 +1409,7 @@ class MCPController(http.Controller):
         """
         uri = params.get("uri")
         if not isinstance(uri, str) or not uri:
-            self._audit_rejected_call(
-                "resources/read", _("Invalid params: 'uri' is required.")
-            )
+            self._audit_rejected_call("resources/read", _("Invalid params: 'uri' is required."))
 
         # Audit context captured for the ``finally`` write: resource reads
         # return raw record/attachment blobs, so they are auditable like a tool
@@ -1461,9 +1439,7 @@ class MCPController(http.Controller):
             except error_sanitizer.SAFE_EXCEPTIONS as err:
                 # User-safe (bad/missing/forbidden URI) -> invalid params, clean text.
                 error_detail = error_sanitizer.sanitize_exception(err)
-                raise jsonrpc.JSONRPCError(
-                    jsonrpc.INVALID_PARAMS, error_detail
-                ) from err
+                raise jsonrpc.JSONRPCError(jsonrpc.INVALID_PARAMS, error_detail) from err
             except OperationalError:
                 # Serialization failure / deadlock: propagate for
                 # service.model.retrying (see _tools_call) instead of converting
@@ -1475,9 +1451,7 @@ class MCPController(http.Controller):
                 error_detail = error_sanitizer.sanitize_exception(
                     err, "MCP resources/read failed for %s" % uri
                 )
-                raise jsonrpc.JSONRPCError(
-                    jsonrpc.INTERNAL_ERROR, error_detail
-                ) from None
+                raise jsonrpc.JSONRPCError(jsonrpc.INTERNAL_ERROR, error_detail) from None
             return {"contents": [entry]}
         finally:
             # Audit like a tool call: success on the request cursor, errors on an

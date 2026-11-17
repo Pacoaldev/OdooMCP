@@ -38,9 +38,7 @@ class TestErrorSanitizerUnit(common.TransactionCase):
     @mute_logger("odoo.addons.mcp_server.controllers.error_sanitizer")
     def test_non_safe_exception_is_genericized(self):
         """A non-safe exception collapses to exactly the generic message."""
-        result = error_sanitizer.sanitize_exception(
-            RuntimeError("boom secret internal detail")
-        )
+        result = error_sanitizer.sanitize_exception(RuntimeError("boom secret internal detail"))
         self.assertEqual(result, error_sanitizer.GENERIC_ERROR_MESSAGE)
         self.assertNotIn("boom", result)
         self.assertNotIn("secret", result)
@@ -242,8 +240,7 @@ class TestErrorSanitizerEndpoint(common.HttpCase):
 
         def boom(self, *args, **kwargs):
             raise RuntimeError(
-                'leaky File "/opt/odoo/secret.py", line 7 '
-                "psycopg2.OperationalError at 0x7f00"
+                'leaky File "/opt/odoo/secret.py", line 7 psycopg2.OperationalError at 0x7f00'
             )
 
         with patch.object(McpToolsRead, "list_models", boom):

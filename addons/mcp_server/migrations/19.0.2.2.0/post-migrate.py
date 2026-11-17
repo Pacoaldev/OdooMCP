@@ -20,9 +20,7 @@ def migrate(cr, version):
     if "mcp.custom.tool" not in env:
         return
     builtins = list(env["mcp.mixin"]._get_mcp_tools())
-    colliding = env["mcp.custom.tool"].search(
-        [("name", "in", builtins), ("active", "=", True)]
-    )
+    colliding = env["mcp.custom.tool"].search([("name", "in", builtins), ("active", "=", True)])
     if not colliding:
         return
     colliding.write({"active": False})

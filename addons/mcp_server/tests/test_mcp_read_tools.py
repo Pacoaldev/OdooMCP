@@ -36,8 +36,7 @@ from .test_helpers import create_test_user, grant_mcp_access, users_groups_field
 
 # Valid 1x1 RGB PNG, used to populate ``res.partner.image_1920``.
 _PNG_1X1 = (
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4"
-    "nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
 )
 
 READ_TOOL_NAMES = {
@@ -89,14 +88,10 @@ class TestMcpReadTools(common.HttpCase):
         self.low_priv_key = self._mint_key(self.low_priv_user, "Low Priv Key")
 
         # Enable res.partner (read) for MCP.
-        self.partner_model = self._enable_model(
-            "base.model_res_partner", allow_read=True
-        )
+        self.partner_model = self._enable_model("base.model_res_partner", allow_read=True)
         # Enable an admin-only model (read) -- the low-priv user is blocked by
         # Odoo ACL even though MCP allows the read operation.
-        self.mail_server_model = self._enable_model(
-            "base.model_ir_mail_server", allow_read=True
-        )
+        self.mail_server_model = self._enable_model("base.model_ir_mail_server", allow_read=True)
         # Enable ir.attachment (read) for MCP -- the odoo://attachment/{id}
         # resource scheme is now gated on the allow-list (attachment access
         # requires ir.attachment or the attachment's parent model enabled).
@@ -154,19 +149,13 @@ class TestMcpReadTools(common.HttpCase):
         if record:
             record.write(vals)
         else:
-            record = (
-                self.env["mcp.enabled.model"]
-                .sudo()
-                .create({"model_id": model_id, **vals})
-            )
+            record = self.env["mcp.enabled.model"].sudo().create({"model_id": model_id, **vals})
         return record
 
     def _disable_model(self, model_xmlid):
         """Remove any ``mcp.enabled.model`` row for ``model_xmlid``."""
         model_id = self.env.ref(model_xmlid).id
-        existing = (
-            self.env["mcp.enabled.model"].sudo().search([("model_id", "=", model_id)])
-        )
+        existing = self.env["mcp.enabled.model"].sudo().search([("model_id", "=", model_id)])
         existing.unlink()
 
     # ------------------------------------------------------------------
@@ -289,9 +278,7 @@ class TestMcpReadTools(common.HttpCase):
         utils.clear_mcp_caches()
 
         # Ensure there are more partners than the lowered default page size.
-        self.env["res.partner"].create(
-            [{"name": f"Limit Partner {i}"} for i in range(5)]
-        )
+        self.env["res.partner"].create([{"name": f"Limit Partner {i}"} for i in range(5)])
 
         result = self._call_tool("search_records", {"model": "res.partner"})
         self.assertFalse(result["isError"], msg=result)
@@ -354,9 +341,7 @@ class TestMcpReadTools(common.HttpCase):
         schema = mixin._mcp_live_input_schema(
             {
                 "properties": {
-                    "limit": {
-                        "description": "Defaults to %(default)s, capped at %(max)s."
-                    }
+                    "limit": {"description": "Defaults to %(default)s, capped at %(max)s."}
                 }
             }
         )
@@ -424,9 +409,7 @@ class TestMcpReadTools(common.HttpCase):
         # Everything shown inline -> no fall-back search hint for this field.
         self.assertNotIn("View all", text)
         # structuredContent stays pure int-ids (the names are display-only).
-        self.assertEqual(
-            result["structuredContent"]["record"]["child_ids"], children.ids
-        )
+        self.assertEqual(result["structuredContent"]["record"]["child_ids"], children.ids)
 
     def test_get_record_large_x2many_collapses_to_count_and_hint(self):
         """An x2many collection above the cap collapses to a count + search hint."""
@@ -511,9 +494,7 @@ class TestMcpReadTools(common.HttpCase):
         """A collapsed many2many (no inverse field) hints with an id-in domain."""
         self._enable_model("base.model_res_partner_category", allow_read=True)
         utils.clear_mcp_caches()
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.max_related_items", "1"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.max_related_items", "1")
         tags = self.env["res.partner.category"].create([{"name": "M1"}, {"name": "M2"}])
         partner = self.env["res.partner"].create(
             {"name": "M2M Parent", "category_id": [(6, 0, tags.ids)]}
@@ -537,9 +518,7 @@ class TestMcpReadTools(common.HttpCase):
         """A collapsed relation whose target isn't MCP-enabled says so, no hint."""
         self._disable_model("base.model_res_partner_category")
         utils.clear_mcp_caches()
-        self.env["ir.config_parameter"].sudo().set_str(
-            "mcp_server.max_related_items", "1"
-        )
+        self.env["ir.config_parameter"].sudo().set_str("mcp_server.max_related_items", "1")
         tags = self.env["res.partner.category"].create([{"name": "N1"}, {"name": "N2"}])
         partner = self.env["res.partner"].create(
             {"name": "Not-exposed relation", "category_id": [(6, 0, tags.ids)]}
@@ -648,9 +627,7 @@ class TestMcpReadTools(common.HttpCase):
         """
         curated = self._call_tool("get_fields", {"model": "res.partner"})
         self.assertFalse(curated["isError"], msg=curated)
-        full = self._call_tool(
-            "get_fields", {"model": "res.partner", "field_names": ["__all__"]}
-        )
+        full = self._call_tool("get_fields", {"model": "res.partner", "field_names": ["__all__"]})
         self.assertFalse(full["isError"], msg=full)
 
         curated_names = {f["name"] for f in curated["structuredContent"]["fields"]}
@@ -671,15 +648,11 @@ class TestMcpReadTools(common.HttpCase):
         )
         # Giant selection lists are capped in the curated view (res.partner's
         # tz has ~500 options) and complete when the field is named explicitly.
-        curated_tz = next(
-            f for f in curated["structuredContent"]["fields"] if f["name"] == "tz"
-        )
+        curated_tz = next(f for f in curated["structuredContent"]["fields"] if f["name"] == "tz")
         self.assertLessEqual(len(curated_tz["selection"]), 20)
         self.assertGreater(curated_tz["selection_more"], 0)
         self.assertIn("more options", curated["content"][0]["text"])
-        explicit_tz = self._call_tool(
-            "get_fields", {"model": "res.partner", "field_names": ["tz"]}
-        )
+        explicit_tz = self._call_tool("get_fields", {"model": "res.partner", "field_names": ["tz"]})
         self.assertFalse(explicit_tz["isError"], msg=explicit_tz)
         tz_field = explicit_tz["structuredContent"]["fields"][0]
         self.assertNotIn("selection_more", tz_field)
@@ -765,9 +738,7 @@ class TestMcpReadTools(common.HttpCase):
     # ------------------------------------------------------------------
     def test_binary_field_replaced_with_uri(self):
         """Populated binary/image fields become odoo:// record-field URIs."""
-        expected_uri = (
-            f"odoo://record/res.partner/{self.partner_with_image.id}/image_1920"
-        )
+        expected_uri = f"odoo://record/res.partner/{self.partner_with_image.id}/image_1920"
 
         # get_record with explicit fields including the image.
         get_result = self._call_tool(
@@ -779,9 +750,7 @@ class TestMcpReadTools(common.HttpCase):
             },
         )
         self.assertFalse(get_result["isError"])
-        self.assertEqual(
-            get_result["structuredContent"]["record"]["image_1920"], expected_uri
-        )
+        self.assertEqual(get_result["structuredContent"]["record"]["image_1920"], expected_uri)
 
         # search_records likewise rewrites the binary field to a URI.
         search_result = self._call_tool(
@@ -858,9 +827,7 @@ class TestMcpReadTools(common.HttpCase):
                     with self.subTest(tool=tool):
                         result = self._call_tool(tool, args)
                         self.assertFalse(result["isError"], msg=result)
-                        self.assertIn(
-                            "comment", result["structuredContent"]["skipped_fields"]
-                        )
+                        self.assertIn("comment", result["structuredContent"]["skipped_fields"])
 
     @contextmanager
     def _refuse_partner_comment(self):
@@ -893,9 +860,7 @@ class TestMcpReadTools(common.HttpCase):
     def test_binary_field_uri_on_archived_record(self):
         """An archived record's populated binary still becomes a URI."""
         self.partner_with_image.active = False
-        expected_uri = (
-            f"odoo://record/res.partner/{self.partner_with_image.id}/image_1920"
-        )
+        expected_uri = f"odoo://record/res.partner/{self.partner_with_image.id}/image_1920"
         get_result = self._call_tool(
             "get_record",
             {
@@ -905,9 +870,7 @@ class TestMcpReadTools(common.HttpCase):
             },
         )
         self.assertFalse(get_result["isError"], msg=get_result)
-        self.assertEqual(
-            get_result["structuredContent"]["record"]["image_1920"], expected_uri
-        )
+        self.assertEqual(get_result["structuredContent"]["record"]["image_1920"], expected_uri)
 
     def test_resources_read_image_returns_blob(self):
         """resources/read materialises a record image field as a base64 blob."""
@@ -939,9 +902,7 @@ class TestMcpReadTools(common.HttpCase):
     # ------------------------------------------------------------------
     def _rpc_error(self, method, params):
         """POST ``method`` and return the JSON-RPC ``error`` object (asserts one)."""
-        response = self._post_rpc(
-            {"jsonrpc": "2.0", "id": 1, "method": method, "params": params}
-        )
+        response = self._post_rpc({"jsonrpc": "2.0", "id": 1, "method": method, "params": params})
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertIn("error", payload, msg=payload)
@@ -968,9 +929,7 @@ class TestMcpReadTools(common.HttpCase):
 
     def test_resources_read_missing_attachment_clean_error(self):
         """A non-existent attachment id yields a clean MissingError -> -32602."""
-        error = self._rpc_error(
-            "resources/read", {"uri": "odoo://attachment/999999999"}
-        )
+        error = self._rpc_error("resources/read", {"uri": "odoo://attachment/999999999"})
         self.assertEqual(error["code"], -32602)
         self.assertNotIn("Traceback", error["message"])
 
@@ -1159,9 +1118,7 @@ class TestMcpReadTools(common.HttpCase):
         self.assertTrue(structured["groups"])
         self.assertIn("__count", structured["groups"][0])
 
-        denied = self._call_tool(
-            "aggregate_records", {"model": "res.users", "groupby": ["active"]}
-        )
+        denied = self._call_tool("aggregate_records", {"model": "res.users", "groupby": ["active"]})
         self.assertTrue(denied["isError"])
         self.assertIn("not enabled", denied["content"][0]["text"].lower())
 
@@ -1206,9 +1163,7 @@ class TestMcpReadTools(common.HttpCase):
                 "vat": f"BE{unique_id}",
             }
         )
-        self.env["res.partner"].create(
-            {"name": f"MCP Agg Person {unique_id}", "is_company": False}
-        )
+        self.env["res.partner"].create({"name": f"MCP Agg Person {unique_id}", "is_company": False})
         result = self._call_tool(
             "aggregate_records",
             {"model": "res.partner", "groupby": ["is_company"], "limit": 1},
@@ -1343,9 +1298,7 @@ class TestMcpReadTools(common.HttpCase):
     # ------------------------------------------------------------------
     def test_get_record_not_found_is_clean_error(self):
         """get_record on a missing id is a clean isError (no traceback)."""
-        result = self._call_tool(
-            "get_record", {"model": "res.partner", "record_id": 999999999}
-        )
+        result = self._call_tool("get_record", {"model": "res.partner", "record_id": 999999999})
         self.assertTrue(result["isError"])
         text = result["content"][0]["text"]
         self.assertIn("not found", text.lower())
@@ -1389,9 +1342,7 @@ class TestMcpReadTools(common.HttpCase):
         check the stray key reached ``method(**arguments)`` and the Python
         ``TypeError`` leaked the implementing class and signature.
         """
-        result = self._call_tool(
-            "get_record", {"model": "res.partner", "record_id": 1, "bogus": 1}
-        )
+        result = self._call_tool("get_record", {"model": "res.partner", "record_id": 1, "bogus": 1})
         self.assertTrue(result["isError"], msg=result)
         text = result["content"][0]["text"]
         self.assertIn("Unknown argument(s): bogus", text)
@@ -1411,9 +1362,7 @@ class TestMcpReadTools(common.HttpCase):
         MCP isError result the model can react to, not a JSON-RPC protocol error
         some clients treat as fatal. The message is sanitized (no traceback).
         """
-        result = self._call_tool(
-            "get_record", {"model": "res.partner", "record_id": "abc"}
-        )
+        result = self._call_tool("get_record", {"model": "res.partner", "record_id": "abc"})
         self.assertTrue(result["isError"], msg=result)
         text = result["content"][0]["text"]
         self.assertTrue(text.strip())
@@ -1439,14 +1388,12 @@ class TestMcpReadTools(common.HttpCase):
             "union": (
                 "search_records",
                 {"model": "res.partner", "fields": 5},
-                "Invalid argument 'fields': must be a list, a string or null, got "
-                "an integer.",
+                "Invalid argument 'fields': must be a list, a string or null, got an integer.",
             ),
             "items": (
                 "aggregate_records",
                 {"model": "res.partner", "groupby": ["is_company", 5]},
-                "Invalid argument 'groupby': must be a list of strings; item 1 is "
-                "an integer.",
+                "Invalid argument 'groupby': must be a list of strings; item 1 is an integer.",
             ),
         }
         for label, (tool, arguments, message) in refused.items():
