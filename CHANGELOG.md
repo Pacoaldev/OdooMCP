@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-11-17
+
 ### Added
 - Odoo 19 → 20 migration assistant in the Python MCP server: `migration_rules` and `migration_scan` tools, versioned rules registry, and static scanners for manifests, `ir.access.csv`, and Python AST patterns.
 - Isolated Odoo 20 Docker stack (`docker-compose.odoo20.yml`, `Dockerfile.odoo20`) on host port **8070**, side by side with the Odoo 19 dev stack.
@@ -63,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - API key rotated (old `rpc` scope key revoked, new `mcp` scope key in use).
 
-[Unreleased]: https://github.com/Pacoaldev/OdooMCP/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Pacoaldev/OdooMCP/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/Pacoaldev/OdooMCP/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Pacoaldev/OdooMCP/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Pacoaldev/OdooMCP/releases/tag/v1.0.0
