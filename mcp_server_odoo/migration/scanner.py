@@ -414,7 +414,9 @@ class _PythonRuleVisitor(ast.NodeVisitor):
         self.definitions.append((node.name, node.lineno))
         self.generic_visit(node)
 
-    visit_AsyncFunctionDef = visit_FunctionDef  # noqa: N815 — ast.NodeVisitor API name
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self.definitions.append((node.name, node.lineno))
+        self.generic_visit(node)
 
 
 def _match_python(
