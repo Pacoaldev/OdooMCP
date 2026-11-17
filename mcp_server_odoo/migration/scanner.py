@@ -276,9 +276,7 @@ def scan_security(path: Path, module: str, target: str) -> tuple[list[Finding], 
     text = path.read_text(encoding="utf-8", errors="replace")
 
     if path.name == LEGACY_ACCESS_CSV_NAME:
-        findings.append(
-            _finding(_LEGACY_FILE_RULE, module, path, 1, path.name)
-        )
+        findings.append(_finding(_LEGACY_FILE_RULE, module, path, 1, path.name))
         # The legacy columns are the concrete reason the file stops loading, so
         # report them too rather than only the filename.
         header = text.splitlines()[0] if text.splitlines() else ""
@@ -376,9 +374,7 @@ def scan_xml(path: Path, module: str, target: str) -> tuple[list[Finding], list[
     if re.search(r'model=["\']ir\.rule["\']', text):
         for offset, line in enumerate(text.splitlines(), start=1):
             if re.search(r'model=["\']ir\.rule["\']', line):
-                findings.append(
-                    _finding(_IR_RULE_RULE, module, path, offset, line.strip())
-                )
+                findings.append(_finding(_IR_RULE_RULE, module, path, offset, line.strip()))
                 break
     return findings, errors
 
@@ -421,7 +417,9 @@ class _PythonRuleVisitor(ast.NodeVisitor):
     visit_AsyncFunctionDef = visit_FunctionDef
 
 
-def _match_python(rule: Rule, visitor: _PythonRuleVisitor, lines: list[str]) -> list[tuple[int, str]]:
+def _match_python(
+    rule: Rule, visitor: _PythonRuleVisitor, lines: list[str]
+) -> list[tuple[int, str]]:
     """Return (line, snippet) for every hit of one rule in a parsed file."""
     match = rule.match
     hits: list[tuple[int, str]] = []

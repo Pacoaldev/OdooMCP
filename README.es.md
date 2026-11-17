@@ -1315,9 +1315,9 @@ Habilita el logging de depuración para más información:
 <summary>Entorno local de integración con Odoo 19</summary>
 
 El repositorio incluye `docker-compose.yml` y `Dockerfile.odoo` para levantar un entorno
-local persistente con Odoo 19, PostgreSQL 16 y el addon oficial `mcp_server`, montado desde
-`./addons`. El directorio del addon está excluido de Git: descarga el ZIP de Odoo Apps
-para Odoo 19.0 y extráelo allí.
+local persistente con Odoo 19, PostgreSQL 16 y el addon `mcp_server`, montado desde
+`addons/mcp_server` (incluido en este repo para desarrollo local y validación en Odoo 20).
+Cualquier otro módulo que pongas bajo `addons/` sigue excluido de Git.
 
 ```bash
 # Arranca los servicios; los volúmenes conservan la base de datos y los datos de Odoo

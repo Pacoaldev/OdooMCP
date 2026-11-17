@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Security Groups -->
+        <record id="group_mcp_user" model="res.groups">
+            <field name="name">MCP User</field>
+            <field name="comment">Users with access to MCP-enabled features but cannot configure MCP
+                settings</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+        </record>
+
+        <record id="group_mcp_admin" model="res.groups">
+            <field name="name">MCP Administrator</field>
+            <field name="comment">Users who can configure MCP settings and enable models</field>
+            <field name="implied_ids" eval="[(4, ref('group_mcp_user'))]" />
+            <field name="user_ids" eval="[(4, ref('base.user_admin'))]" />
+        </record>
+
+        <!-- Record rules.
+             Odoo 20 merged ir.rule into ir.access (model_id, group_id, operation,
+             domain). The two rules this module used to declare had
+             domain_force = [(1, '=', 1)], which is always true, so they added no
+             restriction on top of the model access already granted in
+             security/ir.access.csv. They are dropped rather than translated:
+             a translated record would duplicate a permission that already
+             exists. Add a real rule here as an <record model="ir.access"> with a
+             non-trivial <field name="domain">. -->
+    </data>
+
+    <!-- Add MCP Admin to Administration/Settings Group for Configuration Access -->
+    <data noupdate="1">
+        <record id="base.group_system" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('group_mcp_admin'))]" />
+        </record>
+    </data>
+</odoo>

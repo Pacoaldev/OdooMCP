@@ -60,8 +60,7 @@ def write_module(
     module = addons_dir / name
     module.mkdir(parents=True)
     (module / "__manifest__.py").write_text(
-        "{'name': 'Legacy', 'version': '%s', 'depends': ['base'], 'installable': True}"
-        % version,
+        "{'name': 'Legacy', 'version': '%s', 'depends': ['base'], 'installable': True}" % version,
         encoding="utf-8",
     )
     if access_csv_name:
@@ -106,9 +105,7 @@ class MigrationFixtureMixin:
                 database="test_db",
                 **config_kwargs,
             )
-            return OdooToolHandler(
-                mock_app, mock_connection, mock_access_controller, config
-            )
+            return OdooToolHandler(mock_app, mock_connection, mock_access_controller, config)
 
         return _make
 
@@ -134,9 +131,7 @@ class TestRegistration(MigrationFixtureMixin):
 
 
 class TestMigrationScan(MigrationFixtureMixin):
-    async def test_scan_reports_findings_from_configured_addons_path(
-        self, make_handler, tmp_path
-    ):
+    async def test_scan_reports_findings_from_configured_addons_path(self, make_handler, tmp_path):
         write_module(tmp_path)
 
         handler = make_handler(addons_path=[str(tmp_path)])
@@ -144,7 +139,9 @@ class TestMigrationScan(MigrationFixtureMixin):
 
         assert result["target"] == "20.0"
         assert result["roots"] == [str(tmp_path)]
-        rule_ids = {finding["rule_id"] for module in result["modules"] for finding in module["findings"]}
+        rule_ids = {
+            finding["rule_id"] for module in result["modules"] for finding in module["findings"]
+        }
         assert "ODOO20001" in rule_ids  # pre-20.0 manifest version
         assert "ODOO20002" in rule_ids  # legacy ir.model.access.csv
         assert result["counts"]["error"] >= 1

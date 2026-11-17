@@ -131,7 +131,9 @@ odd/
 
 # Odoo dev instance
 /odoo.env.example
-/addons/
+# Ship mcp_server for Docker dev/CI; ignore other modules dropped under addons/
+/addons/*
+!/addons/mcp_server/
 
 .mcp.json
 .atl/

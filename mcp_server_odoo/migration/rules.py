@@ -147,8 +147,8 @@ ENV_CLEAR = Rule(
     severity="warning",
     applies_to="python",
     message=(
-        "env.clear() carries @deprecated(\"Since 20.0, use transaction.clear or "
-        "transaction.reset\"). It still clears the cache, but the deprecation "
+        'env.clear() carries @deprecated("Since 20.0, use transaction.clear or '
+        'transaction.reset"). It still clears the cache, but the deprecation '
         "is scheduled to become a removal."
     ),
     doc="https://www.odoo.com/documentation/20.0/developer/reference/orm.html",
@@ -309,7 +309,7 @@ IR_RULE_REMOVED = Rule(
         "ir.rule was merged into ir.access. Record rules are now ir.access "
         "records with model_id, group_id, operation and a 'domain' field; the "
         "perm_read/perm_write/perm_create/perm_unlink flags and domain_force "
-        "are gone. A view or data file still declaring model=\"ir.rule\" fails "
+        'are gone. A view or data file still declaring model="ir.rule" fails '
         "to load."
     ),
     doc="https://www.odoo.com/documentation/20.0/developer/reference/security.html",
@@ -424,8 +424,7 @@ def rules_for(applies_to: str, target: str = "20.0") -> list[Rule]:
     return [
         rule
         for rule in REGISTRY
-        if rule.applies_to == applies_to
-        and series_key(rule.introduced) <= target_key
+        if rule.applies_to == applies_to and series_key(rule.introduced) <= target_key
     ]
 
 
