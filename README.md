@@ -1,6 +1,7 @@
 <div align="center">
 
 <img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="250">
+<img src="assets/odoo-mcp-logo.svg" alt="odoomcp logo" width="250">
 
 # OdooMCP
 
