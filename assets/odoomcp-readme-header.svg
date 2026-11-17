@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 520 260" role="img" aria-label="OdooMCP">
+  <image
+    xlink:href="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63"
+    width="250"
+    height="250"
+    x="0"
+    y="5"
+  />
+  <image
+    xlink:href="https://raw.githubusercontent.com/Pacoaldev/OdooMCP/main/assets/odoo-mcp-logo.svg"
+    width="250"
+    height="250"
+    x="270"
+    y="5"
+  />
+</svg>

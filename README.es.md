@@ -1,18 +1,11 @@
 <div align="center">
 
-<style>
-  @media (max-width: 640px) {
-    .odoomcp-logo-hero { display: none !important; }
-  }
-</style>
-
-<img
-  class="odoomcp-logo-hero"
-  src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63"
-  alt="odoomcp logo"
-  width="250"
-/>
-<img src="assets/odoo-mcp-logo.svg" alt="odoomcp logo" width="250" />
+<!-- GitHub strips <style>; narrow = one SVG, wide = duo banner SVG -->
+<picture>
+  <source media="(max-width: 640px)" srcset="assets/odoo-mcp-logo.svg" />
+  <source media="(min-width: 641px)" srcset="assets/odoomcp-readme-header.svg" />
+  <img src="assets/odoo-mcp-logo.svg" alt="odoomcp logo" width="85%" />
+</picture>
 
 # OdooMCP
 
