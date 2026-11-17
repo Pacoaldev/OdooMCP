@@ -6,6 +6,7 @@ for connecting to Odoo via XML-RPC.
 
 import logging
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, Literal, Optional
@@ -69,6 +70,14 @@ class OdooConfig:
     # client will follow them, so the ceiling is enforced rather than assumed.
     max_binary_size: int = 50 * 1024 * 1024
 
+    # Filesystem addons roots scanned by the migration_* tools
+    # (ODOO_MCP_ADDONS_PATH, os.pathsep separated). Empty disables those tools:
+    # they read local source, so without a path there is nothing to scan.
+    addons_path: list[str] = field(default_factory=list)
+
+    # Odoo series the migration rules target, e.g. "20.0" (ODOO_MCP_MIGRATION_TARGET).
+    migration_target: str = "20.0"
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         if not self.url:
@@ -90,6 +99,16 @@ class OdooConfig:
             raise ValueError(
                 f"Invalid ODOO_RPC_TRANSPORT: {self.rpc_transport}. "
                 f"Must be one of: {', '.join(sorted(valid_rpc_transports))}"
+            )
+
+        # Migration rules are keyed by series ("20.0"): a rule that is breaking
+        # in 20.0 is only a warning in 19.0, so the target has to be explicit.
+        # The shape is checked instead of the value: the registry, not the
+        # config, decides which series actually have rules.
+        if not re.fullmatch(r"\d+\.\d+", self.migration_target):
+            raise ValueError(
+                f"Invalid ODOO_MCP_MIGRATION_TARGET: {self.migration_target!r}. "
+                "Expected an Odoo series such as '20.0'."
             )
 
         has_api_key = bool(self.api_key)
@@ -314,6 +333,15 @@ def load_config(env_file: Optional[Path] = None) -> OdooConfig:
             return []
         return [h.strip() for h in hosts.split(",") if h.strip()]
 
+    # Helper function to parse the migration addons roots. os.pathsep, not a
+    # comma: these are filesystem paths and ';' / ':' cannot be split safely
+    # otherwise (Windows drive letters).
+    def parse_addons_path() -> list[str]:
+        raw = os.getenv("ODOO_MCP_ADDONS_PATH", "").strip()
+        if not raw:
+            return []
+        return [p.strip() for p in raw.split(os.pathsep) if p.strip()]
+
     config = OdooConfig(
         url=os.getenv("ODOO_URL", "").strip(),
         api_key=os.getenv("ODOO_API_KEY", "").strip() or None,
@@ -335,6 +363,8 @@ def load_config(env_file: Optional[Path] = None) -> OdooConfig:
         enable_method_calls=get_bool_env("ODOO_MCP_ENABLE_METHOD_CALLS", False),
         allowed_hosts=parse_allowed_hosts(),
         max_binary_size=get_int_env("ODOO_MCP_MAX_BINARY_SIZE", 50 * 1024 * 1024),
+        addons_path=parse_addons_path(),
+        migration_target=os.getenv("ODOO_MCP_MIGRATION_TARGET", "20.0").strip() or "20.0",
     )
 
     return config

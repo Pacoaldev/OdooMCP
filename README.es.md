@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="150">
+<img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="250">
 
 # OdooMCP
 
@@ -99,7 +99,8 @@ Cosas que puedes pedirle a tu asistente una vez conectado:
 | Inteligencia | Selección inteligente de campos, ocultación de campos con credenciales, salida optimizada para LLMs |
 | Control de acceso | Autenticación por clave API o usuario/contraseña, lista de modelos permitidos, contexto de empresa/idioma por llamada |
 | Localización | Respuestas en tu idioma de Odoo preferido (`ODOO_LOCALE`, `lang` por llamada) |
-| Compatibilidad | Funciona con cualquier instancia de Odoo en modo YOLO; con el módulo MCP para producción |
+| Compatibilidad | Funciona con cualquier instancia de Odoo en modo YOLO; con el módulo MCP para producción (Odoo 16–20) |
+| Migración | Escaneo estático de addons personalizados frente a roturas en Odoo 20 (`migration_rules`, `migration_scan`) |
 
 ### Inicio rápido
 
@@ -394,6 +395,8 @@ clave API basta, porque Odoo lee el usuario a partir de la clave.
 | `ODOO_MCP_ALLOWED_HOSTS` | — | Cabeceras `Host` aceptadas, separadas por comas, para el transporte HTTP (protección contra DNS rebinding). Configúralo cuando ejecutes `streamable-http` detrás de un proxy inverso que reenvía un host externo, p. ej. `odoo.example.com,localhost`. Los literales IPv6 pueden ir con o sin corchetes (`[::1]:8000`, `::1`). **Sin configurar, la protección solo se activa automáticamente en una escucha en loopback** — cualquier otro host (p. ej. `0.0.0.0`) se ejecuta sin validación alguna de `Host`/`Origin`. |
 | `ODOO_MCP_SESSION_IDLE_TIMEOUT` | — | Segundos de inactividad antes de cerrar una sesión `streamable-http` y liberar su estado en el servidor, p. ej. `600`. Sin configurar, las sesiones nunca expiran. |
 | `ODOO_MCP_MAX_BINARY_SIZE` | `52428800` | Máximo de bytes devueltos por una única lectura `resources/read` de un binario/adjunto. Se comprueba antes de obtener el payload (para campos de registro, un probe `bin_size` en Odoo 19 y anteriores, y el tamaño del adjunto asociado o un recuento `field.size` en Odoo 20; para adjuntos, el `file_size` almacenado), así que una lectura demasiado grande se rechaza con un error limpio en lugar de cargarse en memoria y recodificarse a base64. En Odoo 20, un campo binario no almacenado (como `avatar_128`), o uno almacenado cuyo adjunto el usuario no puede leer, se comprueba solo después de la lectura. |
+| `ODOO_MCP_ADDONS_PATH` | — | Directorios con tus módulos personalizados, separados por el separador de rutas del sistema (`;` en Windows, `:` en otros). Habilita la herramienta `migration_scan`; si se deja vacío, la herramienta no se registra. P. ej. `C:\addons\custom` o `/opt/addons:/opt/extra`. |
+| `ODOO_MCP_MIGRATION_TARGET` | `20.0` | Serie de Odoo a la que apuntan las reglas de migración, p. ej. `20.0`, o `21.0` para planificar la siguiente actualización. |
 
 #### Acotación multiempresa (`ODOO_ALLOWED_COMPANIES`)
 
@@ -637,6 +640,8 @@ desarrollo compartidos, cualquier entorno con información sensible.
 | `list_record_attachments` | Listar los ficheros adjuntos a un registro, del más reciente al más antiguo |
 | `upload_attachment` | Adjuntar un fichero a un registro (base64, hasta unos 2,9 MB) |
 | `post_message` | Publicar un mensaje en el chatter de un registro (`mail.thread`) |
+| `migration_rules` | Listar las reglas de migración que reporta el scanner (Odoo 19 → 20) |
+| `migration_scan` | Escanear módulos personalizados en disco buscando incompatibilidades con Odoo (requiere `ODOO_MCP_ADDONS_PATH`) |
 | `call_model_method` | Escape hatch opcional para métodos de workflow (solo YOLO completo) |
 
 #### Lectura de datos
@@ -977,6 +982,45 @@ argumento en `keyword_arguments`, por su nombre de parámetro, por ejemplo
 }
 ```
 
+### Soporte de migración (Odoo 19 → 20)
+
+El servidor puede analizar módulos personalizados en disco contra una serie de Odoo, para
+que la conversación de migración se haga sobre tu código real. El escaneo es de solo
+lectura: parsea `__manifest__.py`, los CSV de seguridad, los ficheros Python y XML, y
+nunca importa el código analizado ni se conecta a Odoo.
+
+Configura `ODOO_MCP_ADDONS_PATH` (uno o más directorios, separados por el separador de
+rutas del sistema) y todos los módulos bajo esas raíces se podrán escanear. Sin ella,
+`migration_scan` no se registra. `ODOO_MCP_MIGRATION_TARGET` elige la serie a la que
+apuntan las reglas, `20.0` por defecto.
+
+#### `migration_rules`
+
+Lista cada regla que el scanner puede reportar: un id estable (p. ej. `ODOO20001`), una
+severidad (`error` — el módulo no se instala o la llamada ya no existe; `warning` — se
+instala pero el comportamiento cambia en silencio o la API está deprecada; `info` —
+cosmético o solo de assets), el tipo de fichero al que aplica, una explicación y un
+enlace a la documentación.
+
+```json
+{}
+```
+
+#### `migration_scan`
+
+Escanea las raíces de addons configuradas. Cada finding lleva el id de regla, severidad,
+explicación, fichero, línea y fragmento; un fichero que no se puede parsear se reporta en
+el campo `errors` del módulo en lugar de saltarse en silencio. Opcionalmente limita el
+escaneo a los nombres de directorio de módulos, o escanea contra otra serie para
+planificar la siguiente actualización.
+
+```json
+{
+  "modules": ["mi_modulo"],
+  "target": "21.0"
+}
+```
+
 ### Selección de campos y contexto por llamada
 
 #### Selección inteligente de campos
@@ -1309,6 +1353,33 @@ uv run pytest -m "yolo or mcp" -q
 </details>
 
 <details>
+<summary>Stack Odoo 20 (validación del addon)</summary>
+
+Un segundo Compose levanta Odoo **20.0** en el puerto **8070** del anfitrión, en paralelo al
+entorno 19.x, sin compartir volúmenes ni puertos:
+
+```bash
+docker compose -f docker-compose.odoo20.yml up -d
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8070/web/login
+```
+
+Ejecuta la suite del addon `mcp_server` dentro del contenedor (puerto HTTP libre para no
+chocar con una instancia en marcha):
+
+```bash
+docker compose -f docker-compose.odoo20.yml exec odoo20 \
+  odoo --stop-after-init --no-http --http-port=8079 \
+  --test-enable --test-tags /mcp_server --update mcp_server \
+  -d odoo20 --db_host=db20 --db_user=odoo --db_password=odoo --without-demo=true
+```
+
+Si todo va bien verás **722** tests con **0** fallos. En Odoo 20 las claves API exigen
+**coincidencia exacta de scope** (`rpc` o el scope `mcp` del addon); las claves NULL de 19.x
+ya no autentican.
+
+</details>
+
+<details>
 <summary>Conectar OpenCode</summary>
 
 Añade este servidor MCP a `opencode.json` de OpenCode:
@@ -1375,22 +1446,29 @@ npx @modelcontextprotocol/inspector python -m mcp_server_odoo
 <summary>Suite de tests</summary>
 
 ```bash
-# Tests unitarios (no se necesita Odoo)
+# Tests unitarios (sin Odoo en vivo; 1800 comprobaciones a nov 2026)
+uv run pytest -m "not yolo and not mcp" -q
+
+# Igual con cobertura
 uv run pytest -m "not yolo and not mcp" --cov
 
-# Tests de integración YOLO (Odoo estándar, sin módulo MCP)
+# Integración YOLO (Odoo estándar, sin módulo MCP)
 uv run pytest -m "yolo" -v
 
-# Tests de integración MCP (Odoo + módulo MCP instalado)
+# Integración MCP (Odoo + módulo MCP; exporta ODOO_* desde .env antes)
 uv run pytest -m "mcp" -v
 
-# Todos los tests
+# Todos los tests Python (yolo/mcp requieren Odoo configurado)
 uv run pytest --cov
 
-# Categorías de tests concretas
+# Suites focalizadas
+uv run pytest tests/test_migration_tools.py -v
 uv run pytest tests/test_tools.py -v
 uv run pytest tests/test_server_foundation.py -v
 ```
+
+Regresión del addon en Odoo 20: ver **Stack Odoo 20** arriba (722 tests del addon).
+
 </details>
 
 ### Licencia

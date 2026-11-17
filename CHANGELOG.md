@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Odoo 19 → 20 migration assistant in the Python MCP server: `migration_rules` and `migration_scan` tools, versioned rules registry, and static scanners for manifests, `ir.access.csv`, and Python AST patterns.
+- Isolated Odoo 20 Docker stack (`docker-compose.odoo20.yml`, `Dockerfile.odoo20`) on host port **8070**, side by side with the Odoo 19 dev stack.
+- Addon support for **mcp-scoped** API keys on Odoo 20 (wizard `scope_mode`, extended `scope` selection, tighter `res.users.apikeys` read rule for MCP users).
+
+### Changed
+- `mcp_server` addon manifest and security adapted for Odoo **20.0** (`ir.access.csv`, binary fields on attachments, merged record rules).
+- `README.md` / `README.es.md`: Odoo 20 Docker stack, pytest matrix, migration feature map, addon test command.
+
+### Fixed
+- Odoo 20 addon test suite: **722** tests green (`--test-tags /mcp_server`).
+- Python unit suite: **1800** tests pass offline (`pytest -m "not yolo and not mcp"`); HTTP transport tests no longer hit a live Odoo when checking bind/timeout kwargs.
+
 ## [1.0.1] - 2026-11-16
 
 ### Changed

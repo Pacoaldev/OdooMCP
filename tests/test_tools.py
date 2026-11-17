@@ -97,7 +97,12 @@ class TestOdooToolHandler:
         assert handler.config is valid_config
 
     def test_tools_registered(self, handler, mock_app):
-        """Test that all tools are registered with MCPServer."""
+        """Test that all tools are registered with MCPServer.
+
+        migration_rules is always registered; migration_scan needs
+        ODOO_MCP_ADDONS_PATH (valid_config has none) and is covered in
+        tests/test_migration_tools.py.
+        """
         expected_tools = {
             "search_records",
             "get_record",
@@ -115,6 +120,7 @@ class TestOdooToolHandler:
             "read_attachment",
             "aggregate_records",
             "list_resource_templates",
+            "migration_rules",
         }
         assert set(mock_app._tools.keys()) == expected_tools
 

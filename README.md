@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="150">
+<img src="https://github.com/user-attachments/assets/23669ce4-0dc6-4ef1-b03d-6ffa7fb7ed63" alt="odoomcp logo" width="250">
 
 # OdooMCP
 
@@ -98,7 +98,8 @@ Things you can ask your assistant once it is connected:
 | Intelligence | Smart field selection, credential-like fields withheld, LLM-optimized output |
 | Access control | API key or user/password auth, model allowlist, per-call company/language context |
 | Localization | Responses in your preferred Odoo language (`ODOO_LOCALE`, per-call `lang`) |
-| Compatibility | Works with any Odoo instance in YOLO mode; with the MCP module for production |
+| Compatibility | Works with any Odoo instance in YOLO mode; with the MCP module for production (Odoo 16–20) |
+| Migration | Static scan of custom addons for Odoo 20 breakages (`migration_rules`, `migration_scan`) |
 
 ### Quick start
 
@@ -388,6 +389,8 @@ alone is enough, because Odoo reads the user from the key.
 | `ODOO_MCP_ALLOWED_HOSTS` | — | Comma-separated `Host` headers to accept for HTTP transport (DNS-rebinding protection). Set when running `streamable-http` behind a reverse proxy that forwards an external host, e.g. `odoo.example.com,localhost`. IPv6 literals may be bracketed or bare (`[::1]:8000`, `::1`). **Unset, protection is only auto-enabled for a loopback bind** — binding any other host (e.g. `0.0.0.0`) runs with no `Host`/`Origin` validation at all. |
 | `ODOO_MCP_SESSION_IDLE_TIMEOUT` | — | Seconds of inactivity before a `streamable-http` session is closed and its server-side state freed, e.g. `600`. Unset means sessions never expire. |
 | `ODOO_MCP_MAX_BINARY_SIZE` | `52428800` | Maximum bytes returned by a single binary/attachment `resources/read`. Checked before the payload is fetched (for record fields, a `bin_size` probe on Odoo 19 and older, and the size of the backing attachment or a `field.size` count on Odoo 20; for attachments, the stored `file_size`), so an oversized read is refused with a clean error instead of being pulled into memory and re-encoded to base64 for the wire. On Odoo 20 a non-stored binary field (such as `avatar_128`), or a stored one whose attachment the user cannot read, is checked only after the fetch. |
+| `ODOO_MCP_ADDONS_PATH` | — | Directories holding your custom modules, separated by the OS path separator (`;` on Windows, `:` elsewhere). Enables the `migration_scan` tool; left empty, the tool is not registered. E.g. `C:\addons\custom` or `/opt/addons:/opt/extra`. |
+| `ODOO_MCP_MIGRATION_TARGET` | `20.0` | Odoo series the migration rules target, e.g. `20.0`, or `21.0` to plan the next upgrade. |
 
 #### Multi-company scoping (`ODOO_ALLOWED_COMPANIES`)
 
@@ -619,6 +622,8 @@ servers, anything with sensitive information.
 | `list_record_attachments` | List files attached to a record, newest first |
 | `upload_attachment` | Attach a file to a record (base64, up to about 2.9 MB) |
 | `post_message` | Post a message to a record's chatter (`mail.thread`) |
+| `migration_rules` | List the migration rules the scanner reports (Odoo 19 → 20) |
+| `migration_scan` | Scan custom modules on disk for Odoo migration incompatibilities (needs `ODOO_MCP_ADDONS_PATH`) |
 | `call_model_method` | Opt-in escape hatch for workflow methods (full YOLO only) |
 
 #### Reading data
@@ -948,6 +953,45 @@ by its parameter name, for example `{"partner_ids": [3]}`.
 }
 ```
 
+### Migration support (Odoo 19 → 20)
+
+The server can lint custom modules on disk against an Odoo series, so the
+migration conversation happens over your actual source code. The scan is
+read-only: it parses `__manifest__.py`, the security CSVs, Python files and XML,
+and never imports the scanned code or connects to Odoo.
+
+Set `ODOO_MCP_ADDONS_PATH` (one or more directories, separated by the OS path
+separator) and every module under those roots becomes scannable. Without it,
+`migration_scan` is not registered. `ODOO_MCP_MIGRATION_TARGET` selects the
+series the rules target, `20.0` by default.
+
+#### `migration_rules`
+
+List every rule the scanner can report: a stable id (e.g. `ODOO20001`), a
+severity (`error` — the module fails to install or the call no longer exists;
+`warning` — it installs but behaviour silently changes or the API is
+deprecated; `info` — cosmetic or asset-only), the file kind it applies to, an
+explanation and a documentation link.
+
+```json
+{}
+```
+
+#### `migration_scan`
+
+Scan the configured addons roots. Each finding carries the rule id, severity,
+explanation, file, line and snippet; a file that cannot be parsed is reported
+in the module's `errors` instead of silently skipped. Optionally restrict the
+scan to module directory names, or scan against another series to plan the next
+upgrade.
+
+```json
+{
+  "modules": ["my_module"],
+  "target": "21.0"
+}
+```
+
 ### Field selection and per-call context
 
 #### Smart field selection
@@ -1264,6 +1308,33 @@ uv run pytest -m "yolo or mcp" -q
 </details>
 
 <details>
+<summary>Odoo 20 stack (addon validation)</summary>
+
+A second Compose file runs Odoo **20.0** on host port **8070** so it can sit next to the
+19.x dev stack without sharing volumes or ports:
+
+```bash
+docker compose -f docker-compose.odoo20.yml up -d
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8070/web/login
+```
+
+Run the `mcp_server` addon test suite inside the container (use a free HTTP port so it does
+not clash with a running instance):
+
+```bash
+docker compose -f docker-compose.odoo20.yml exec odoo20 \
+  odoo --stop-after-init --no-http --http-port=8079 \
+  --test-enable --test-tags /mcp_server --update mcp_server \
+  -d odoo20 --db_host=db20 --db_user=odoo --db_password=odoo --without-demo=true
+```
+
+On success the runner reports **722** tests with **0** failures. On Odoo 20, API keys use
+**exact scope matching** (`rpc` or the addon's dedicated `mcp` scope); NULL-scope keys from
+19.x no longer authenticate.
+
+</details>
+
+<details>
 <summary>Connect OpenCode</summary>
 
 Add an MCP server entry to OpenCode's `opencode.json`:
@@ -1330,22 +1401,29 @@ npx @modelcontextprotocol/inspector python -m mcp_server_odoo
 <summary>Test suite</summary>
 
 ```bash
-# Unit tests (no Odoo needed)
+# Unit tests (no live Odoo; 1800 checks as of Nov 2026)
+uv run pytest -m "not yolo and not mcp" -q
+
+# Same, with coverage
 uv run pytest -m "not yolo and not mcp" --cov
 
 # YOLO integration tests (vanilla Odoo, no MCP module)
 uv run pytest -m "yolo" -v
 
-# MCP integration tests (Odoo + MCP module installed)
+# MCP integration tests (Odoo + MCP module; export ODOO_* from .env first)
 uv run pytest -m "mcp" -v
 
-# All tests
+# All Python tests (needs a configured Odoo for yolo/mcp markers)
 uv run pytest --cov
 
-# Run specific test categories
+# Focused suites
+uv run pytest tests/test_migration_tools.py -v
 uv run pytest tests/test_tools.py -v
 uv run pytest tests/test_server_foundation.py -v
 ```
+
+Addon regression on Odoo 20: see **Odoo 20 stack** above (`722` addon tests).
+
 </details>
 
 ### License

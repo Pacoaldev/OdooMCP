@@ -1,0 +1,37 @@
+# Odoo 20 stack, isolated from the Odoo 19 dev stack.
+# Ports 8070/8071 and distinct volumes so both versions can run side by side.
+#
+#   docker compose -f docker-compose.odoo20.yml up -d
+#   curl -s http://localhost:8070/web/login
+#
+# Used to validate the mcp_server addon on 20.0 and to check the real format of
+# the Odoo 20 security files before changing the migration rules.
+services:
+  db20:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+    volumes:
+      - odoo20-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+  odoo20:
+    build:
+      context: .
+      dockerfile: Dockerfile.odoo20
+    depends_on:
+      - db20
+    ports:
+      - "8070:8069"
+    environment:
+      - HOST=db20
+      - USER=odoo
+      - PASSWORD=odoo
+    volumes:
+      - odoo20-web-data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons
+    restart: unless-stopped
+volumes:
+  odoo20-db-data:
+  odoo20-web-data:

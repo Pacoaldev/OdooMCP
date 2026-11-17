@@ -902,11 +902,13 @@ class TestTransportSecurity:
             host=host,
             port=9000,
         )
-        server = OdooMCPServer(config)
+        fake = _FakeConnection()
+        with patch("mcp_server_odoo.server.OdooConnection", return_value=fake):
+            server = OdooMCPServer(config)
 
-        server.app.run_streamable_http_async = AsyncMock()
-        with patch.object(server, "_apply_dynamic_instructions", new=AsyncMock()):
-            await server.run_http()
+            server.app.run_streamable_http_async = AsyncMock()
+            with patch.object(server, "_apply_dynamic_instructions", new=AsyncMock()):
+                await server.run_http()
 
         kwargs = server.app.run_streamable_http_async.call_args.kwargs
         assert kwargs["host"] == host
@@ -1076,11 +1078,13 @@ class TestSessionIdleTimeout:
 
     @staticmethod
     async def _run_http_kwargs(config):
-        server = OdooMCPServer(config)
-        server.app.run_streamable_http_async = AsyncMock()
-        with patch.object(server, "_apply_dynamic_instructions", new=AsyncMock()):
-            await server.run_http()
-        return server.app.run_streamable_http_async.call_args.kwargs
+        fake = _FakeConnection()
+        with patch("mcp_server_odoo.server.OdooConnection", return_value=fake):
+            server = OdooMCPServer(config)
+            server.app.run_streamable_http_async = AsyncMock()
+            with patch.object(server, "_apply_dynamic_instructions", new=AsyncMock()):
+                await server.run_http()
+            return server.app.run_streamable_http_async.call_args.kwargs
 
     @pytest.mark.asyncio
     async def test_unset_timeout_means_sessions_never_expire(self):

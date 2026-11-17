@@ -59,6 +59,7 @@ from .file_types import inline_image_type, is_inline_image_type, is_text_mimetyp
 from .formatters import MAX_RELATED_ITEMS
 from .json_values import scrub_json_fields
 from .logging_config import get_logger, perf_logger
+from .migration import rule_inventory, scan_addons
 from .odoo_connection import (
     ACCESS_ERROR_FAULT_CODE,
     XMLRPC_MAX_INT,
@@ -2382,6 +2383,78 @@ class OdooToolHandler:
                 model, groupby, aggregates, domain, order, limit, offset, ctx, context=context
             )
             return AggregateResult(**result)
+
+        # Migration tools read local addon source, not Odoo data. migration_rules
+        # lists the versioned rule registry and needs no filesystem access;
+        # migration_scan walks the configured addons roots, so it is invisible
+        # until ODOO_MCP_ADDONS_PATH is set (the same opt-in shape as
+        # call_model_method below).
+        @self.app.tool(
+            title="Migration Rules",
+            annotations=ToolAnnotations(
+                read_only_hint=True,
+                destructive_hint=False,
+                idempotent_hint=True,
+                open_world_hint=False,
+            ),
+        )
+        async def migration_rules(ctx: Optional[Context] = None) -> Dict[str, Any]:
+            """List every migration rule the scanner can report.
+
+            Each rule carries a stable id (e.g. ODOO20001), a severity
+            (error: the module fails to install or the call no longer exists;
+            warning: it installs but behaviour silently changes or the API is
+            deprecated; info: cosmetic or asset-only), the file kind it applies
+            to, an explanation and a documentation link. Use it to look up what
+            a migration_scan finding means, without connecting to Odoo.
+
+            Returns:
+                The configured migration target, the rule count and the full
+                rule inventory.
+            """
+            return await self._handle_migration_rules_tool(ctx)
+
+        if self.config.addons_path:
+            logger.info("migration_scan tool ENABLED (ODOO_MCP_ADDONS_PATH is set)")
+
+            @self.app.tool(
+                title="Migration Scan",
+                annotations=ToolAnnotations(
+                    read_only_hint=True,
+                    destructive_hint=False,
+                    idempotent_hint=True,
+                    open_world_hint=False,
+                ),
+            )
+            async def migration_scan(
+                modules: Optional[List[str]] = None,
+                target: Optional[str] = None,
+                ctx: Optional[Context] = None,
+            ) -> Dict[str, Any]:
+                """Scan custom modules on disk for Odoo migration incompatibilities.
+
+                Walks the directories configured in ODOO_MCP_ADDONS_PATH, parses
+                each module's __manifest__.py, security CSVs, Python and XML
+                files, and reports every migration-rule match with its rule id,
+                severity, explanation, file, line and snippet. The scan only
+                reads: it never imports the scanned code and never connects to
+                Odoo, so a module that does not run yet is exactly the module
+                that needs scanning.
+
+                Args:
+                    modules: Restrict the scan to these module directory
+                        names. Omit for every module under the addons roots.
+                    target: Odoo series to scan against, e.g. '21.0' to plan
+                        the next upgrade. Defaults to ODOO_MCP_MIGRATION_TARGET.
+
+                Returns:
+                    The target, the scanned roots, per-severity counts, and one
+                    entry per module with its findings and parse errors. A file
+                    that could not be parsed is reported in 'errors' instead of
+                    silently skipped. Directories that are not modules are
+                    listed in 'skipped'.
+                """
+                return await self._handle_migration_scan_tool(modules, target, ctx)
 
         # Two-key opt-in: invisible to the client unless both flags are set.
         if self.config.is_write_allowed and self.config.enable_method_calls:
@@ -4916,6 +4989,56 @@ class OdooToolHandler:
             logger.error(f"Error in call_model_method tool: {e}")
             sanitized_msg = ErrorSanitizer.sanitize_message(str(e))
             raise ValidationError(f"Failed to call model method: {sanitized_msg}") from e
+
+    async def _handle_migration_rules_tool(self, ctx=None) -> Dict[str, Any]:
+        """Handle migration_rules tool request: the full rule registry."""
+        rules = rule_inventory()
+        await self._ctx_info(ctx, f"Listing {len(rules)} migration rules")
+        return {
+            "target": self.config.migration_target,
+            "count": len(rules),
+            "rules": rules,
+        }
+
+    async def _handle_migration_scan_tool(
+        self,
+        modules: Optional[List[str]] = None,
+        target: Optional[str] = None,
+        ctx=None,
+    ) -> Dict[str, Any]:
+        """Handle migration_scan tool request: scan the configured addons roots.
+
+        The scan is read-only and never touches Odoo; it runs in a thread
+        because it walks the filesystem and parses files.
+        """
+        if not self.config.addons_path:
+            raise ValidationError(
+                "No addons path configured. Set ODOO_MCP_ADDONS_PATH (os.pathsep-separated "
+                "directories holding your custom modules) to enable migration_scan."
+            )
+
+        effective_target = (target or self.config.migration_target).strip()
+        if not re.fullmatch(r"\d+\.\d+", effective_target):
+            raise ValidationError(
+                f"Invalid target: {effective_target!r}. Expected an Odoo series such as '20.0'."
+            )
+
+        # An empty filter means "every module", mirroring the empty-fields
+        # convention of the read tools.
+        wanted = None
+        if modules:
+            wanted = [name.strip() for name in modules if name and name.strip()]
+
+        scan = await asyncio.to_thread(
+            scan_addons, self.config.addons_path, effective_target, wanted
+        )
+        result = scan.to_dict()
+        await self._ctx_info(
+            ctx,
+            f"Scanned {result['counts']['modules']} modules: "
+            f"{result['counts']['error']} errors, {result['counts']['warning']} warnings",
+        )
+        return result
 
 
 def register_tools(
