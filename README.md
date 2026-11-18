@@ -1477,11 +1477,6 @@ Regresión del addon en Odoo 20: ver **Stack Odoo 20** arriba (722 tests del add
 Este proyecto se distribuye bajo la Licencia MIT — consulta
 el fichero [LICENSE](LICENSE) para más detalles.
 
-### Contribuir
-
-¡Las contribuciones son muy bienvenidas! Abre un issue o un pull request para
-proponer cambios.
-
 ### Apoyo
 
 ¡Gracias por usar este proyecto! Si te resulta útil y quieres apoyar mi trabajo,
@@ -1491,8 +1486,9 @@ considera invitarme a un café. ¡Tu apoyo se agradece muchísimo!
   <a href="https://ko-fi.com/pacoaldev" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com" style="height: 36px !important;" ></a>
 </p>
 
-
-¡Y no olvides darle una estrella al proyecto si te gusta! :star:
+<p align="center">
+  ¡Y no olvides darle una estrella al proyecto si te gusta! :star:
+</p>
 
 <p align="center">
   <a href="https://github.com/Gentleman-Programming/gentle-ai">
