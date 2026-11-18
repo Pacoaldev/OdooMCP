@@ -1432,10 +1432,6 @@ Addon regression on Odoo 20: see **Odoo 20 stack** above (`722` addon tests).
 This project is licensed under the MIT License — see the
 [LICENSE](LICENSE) file for details.
 
-### Contributing
-
-Contributions are very welcome! Open an issue or a pull request to discuss changes.
-
 ### Support
 
 Thank you for using this project! If you find it helpful and would like to support my
@@ -1445,7 +1441,9 @@ work, kindly consider buying me a coffee. Your support is greatly appreciated!
   <a href="https://ko-fi.com/pacoaldev" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Buy Me a Coffee at ko-fi.com" style="height: 36px !important;" ></a>
 </p>
 
-And do not forget to give the project a star if you like it! :star:
+<p align="center">
+  And do not forget to give the project a star if you like it! :star:
+</p>
 
 <p align="center">
   <a href="https://github.com/Gentleman-Programming/gentle-ai">
